@@ -58,6 +58,13 @@ public class BlockStmtNode extends StmtNode{
         this.location = loc;
     }
 
+    public BlockStmtNode(ContinueStmtNode node , Location loc){
+        List<Node> s = new ArrayList<>();
+        s.add(node);
+        this.statments = s;
+        this.location = loc;
+    }
+
     public BlockStmtNode(VarDeclNode node , Location loc){
         List<Node> s = new ArrayList<>();
         s.add(node);
