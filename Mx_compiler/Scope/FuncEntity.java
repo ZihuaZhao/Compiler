@@ -72,11 +72,23 @@ public class FuncEntity extends Entity {
         return isMember;
     }
 
+    public void setMember(boolean isMember){
+        this.isMember = isMember;
+    }
+
     public boolean isBuiltIn(){
         return isBuiltIn;
     }
 
+    public void setBuiltIn(boolean isBuiltIn){
+        this.isBuiltIn = isBuiltIn;
+    }
+
     public Type getReturnType(){
         return this.returnType;
+    }
+
+    public void setReturnType(Type type){
+        this.returnType = type;
     }
 }

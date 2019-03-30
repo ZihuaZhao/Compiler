@@ -34,6 +34,10 @@ public class Scope {
         this.isClassScope = isClassScope;
     }
 
+    public boolean isTop(){
+        return isTop;
+    }
+
     public Scope getParent(){
         return parent;
     }
