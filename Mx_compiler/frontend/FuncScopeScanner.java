@@ -168,7 +168,7 @@ public class FuncScopeScanner extends BasicScopeScanner{
     public void visit(ReturnStmtNode node){
         boolean invalidReturnType = false;
         if(node.getExpr() == null){
-            if(!(curReturnType == null) || curReturnType instanceof VoidType){
+            if(!(curReturnType == null || curReturnType instanceof VoidType)){
                 invalidReturnType = true;
             }
         }
@@ -300,6 +300,9 @@ public class FuncScopeScanner extends BasicScopeScanner{
 
     @Override
     public void visit(CreatorExprNode node){
+        if(node.getNewType().getType() instanceof ClassType){
+            curScope.getCheck(((ClassType) node.getNewType().getType()).getName() , Scope.classKey(((ClassType) node.getNewType().getType()).getName()));
+        }
         if(node.getDims() != null){
             for(ExprNode exprNode : node.getDims()){
                 exprNode.accept(this);

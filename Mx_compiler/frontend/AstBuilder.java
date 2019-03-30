@@ -220,6 +220,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         else if(bbody instanceof WhileStmtNode) body = new BlockStmtNode((WhileStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof ForStmtNode) body = new BlockStmtNode((ForStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof ReturnStmtNode) body = new BlockStmtNode((ReturnStmtNode) bbody , Location.fromCtx(ctx));
+        else if(bbody instanceof BreakStmtNode) body = new BlockStmtNode((BreakStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof BlockStmtNode) body = (BlockStmtNode) bbody;
         else if(ctx.body().statement() == null) body = null;
         else throw new Error("error body statements");
@@ -233,6 +234,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         else if(elseStmt instanceof WhileStmtNode) elseBody = new BlockStmtNode((WhileStmtNode) elseStmt , Location.fromCtx(ctx));
         else if(elseStmt instanceof ForStmtNode) elseBody = new BlockStmtNode((ForStmtNode) elseStmt , Location.fromCtx(ctx));
         else if(elseStmt instanceof ReturnStmtNode) elseBody = new BlockStmtNode((ReturnStmtNode) elseStmt , Location.fromCtx(ctx));
+        else if(elseStmt instanceof BreakStmtNode) elseBody = new BlockStmtNode((BreakStmtNode) elseStmt , Location.fromCtx(ctx));
         else if(elseStmt instanceof BlockStmtNode) elseBody = (BlockStmtNode) elseStmt;
         else if(elseStmt == null) elseBody = null;
         else throw new Error("error body statements");
@@ -272,6 +274,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         else if(bbody instanceof WhileStmtNode) body = new BlockStmtNode((WhileStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof ForStmtNode) body = new BlockStmtNode((ForStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof ReturnStmtNode) body = new BlockStmtNode((ReturnStmtNode) bbody , Location.fromCtx(ctx));
+        else if(bbody instanceof BreakStmtNode) body = new BlockStmtNode((BreakStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof BlockStmtNode) body = (BlockStmtNode) bbody;
         else if(ctx.body().statement() == null) body = null;
         else throw new Error("error body statements");
@@ -293,6 +296,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         else if(bbody instanceof WhileStmtNode) body = new BlockStmtNode((WhileStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof ForStmtNode) body = new BlockStmtNode((ForStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof ReturnStmtNode) body = new BlockStmtNode((ReturnStmtNode) bbody , Location.fromCtx(ctx));
+        else if(bbody instanceof BreakStmtNode) body = new BlockStmtNode((BreakStmtNode) bbody , Location.fromCtx(ctx));
         else if(bbody instanceof BlockStmtNode) body = (BlockStmtNode) bbody;
         else if(ctx.body().statement() == null) body = null;
         else throw new Error("error body statements");
