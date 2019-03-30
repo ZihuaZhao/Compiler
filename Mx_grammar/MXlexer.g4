@@ -67,10 +67,10 @@ fragment FALSE:'false';
 
 IntLiteral:[0-9]+;
 
-StringLiteral:'"'StringCharacters?'"';
+StringLiteral:'"'StringCharacters?'"' | '\'' StringCharacters?'\'';
 fragment StringCharacters:StringCharacter+;
 fragment StringCharacter:~["\\]|EscapeSequence;
-fragment EscapeSequence:'\\';
+fragment EscapeSequence:'\\'[btnfr"'\\];
 
 ID:[a-zA-Z][0-9a-zA-Z_]*;
 

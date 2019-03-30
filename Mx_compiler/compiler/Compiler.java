@@ -8,6 +8,7 @@ import Mx_compiler.frontend.GlobalScopePreScanner;
 import Mx_compiler.node.ProgramNode;
 import Mx_grammar.MXLexer;
 import Mx_grammar.MXParser;
+import Mx_grammar.SyntaxErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -28,6 +29,8 @@ public class Compiler {
         MXLexer lexer = new MXLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         MXParser parser = new MXParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(new SyntaxErrorListener());
         ParseTree tree = parser.program();
         AstBuilder astbuilder = new AstBuilder();
         ast = (ProgramNode) astbuilder.visit(tree);

@@ -11,11 +11,13 @@ public class BasicScopeScanner implements AstVisitor{
     public void checkVarDecl(VarDeclNode node){
         if(node.getExpr() != null){
             node.getExpr().accept(this);
-            if(node.getType().getType() instanceof VoidType || node.getExpr().getType() instanceof VoidType) throw new Error("invalid var type");
-            if(node.getExpr().getType() instanceof NullType){
-                if(node.getType().getType() instanceof ClassType || node.getType().getType() instanceof ArrayType){}
-                else throw new Error("invalid var type");
-            }
+            boolean invalid;
+            if(node.getType().getType() instanceof VoidType || node.getExpr().getType() instanceof VoidType) invalid = true;
+            else if(node.getType().getType().equals(node.getExpr().getType())) invalid = false;
+            else if(node.getExpr().getType() instanceof NullType) invalid = !(node.getType().getType() instanceof ClassType || node.getType().getType() instanceof  ArrayType);
+            else invalid = true;
+            if(invalid) throw new Error("invalid var init value");
+
         }
     }
 
