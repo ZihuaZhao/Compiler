@@ -94,6 +94,9 @@ public class AstBuilder extends MXBaseVisitor<Node> {
                     funcMember.add((FuncDeclNode)mem);
                 }
                 else if(mem instanceof ClassBuildNode){
+                    if(!(((ClassBuildNode) mem).getName().equals(name))){
+                        throw new Error("invalid class builder");
+                    }
                     classBuild = (ClassBuildNode)mem;
                     return new ClassDeclNode(name , varMember , funcMember , classBuild , Location.fromCtx(ctx));
                 }
@@ -113,6 +116,13 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         else{
             return visit(ctx.classBuildField());
         }
+    }
+
+    @Override
+    public Node visitClassBuildField(MXParser.ClassBuildFieldContext ctx){
+        String name = ctx.ID().getText();
+        BlockStmtNode body = (BlockStmtNode) visit(ctx.funcBody().block());
+        return new ClassBuildNode(name , body , Location.fromCtx(ctx));
     }
 
     @Override
