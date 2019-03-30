@@ -122,7 +122,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         String name = ctx.ID().getText();
         BlockStmtNode body = (BlockStmtNode) visit(ctx.funcBody().block());
         for(Node node : body.getstmts()){
-            if(node instanceof ReturnStmtNode) throw new Error("there shouldn't be return in class build");
+            if(node instanceof ReturnStmtNode && ((ReturnStmtNode) node).getExpr() != null) throw new Error("there shouldn't be return in class build");
         }
         return new ClassBuildNode(name , body , Location.fromCtx(ctx));
     }
