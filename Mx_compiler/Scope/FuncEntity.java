@@ -25,6 +25,7 @@ public class FuncEntity extends Entity {
         this.name = node.getName();
         this.type = new FunctionType(node.getName());
         this.returnType = null;
+        this.params = new ArrayList<>();
         this.params.add(new VarEntity(Scope.THIS_PARA_NAME , new ClassType(className)));
         isMember = true;
         isConstruct = true;
