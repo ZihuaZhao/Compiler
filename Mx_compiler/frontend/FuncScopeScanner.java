@@ -99,7 +99,7 @@ public class FuncScopeScanner extends BasicScopeScanner{
 
     @Override
     public void visit(ExprStmtNode node){
-        node.getExpr().accept(this);
+        if(node.getExpr() != null)  node.getExpr().accept(this);
     }
 
     @Override
