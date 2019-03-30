@@ -82,7 +82,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         String name = ctx.ID().getText();
         List<VarDeclNode> varMember = new ArrayList<>();
         List<FuncDeclNode> funcMember = new ArrayList<>();
-        ClassBuildNode classBuild;
+        ClassBuildNode classBuild = null;
         Node mem;
         if(ctx.classBody() != null){
             for(ParserRuleContext classBody : ctx.classBody()){
@@ -98,11 +98,10 @@ public class AstBuilder extends MXBaseVisitor<Node> {
                         throw new Error("invalid class builder");
                     }
                     classBuild = (ClassBuildNode)mem;
-                    return new ClassDeclNode(name , varMember , funcMember , classBuild , Location.fromCtx(ctx));
                 }
             }
         }
-        return new ClassDeclNode(name , varMember , funcMember , Location.fromCtx(ctx));
+        return new ClassDeclNode(name , varMember , funcMember, classBuild , Location.fromCtx(ctx));
     }
 
     @Override

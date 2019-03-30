@@ -18,14 +18,6 @@ public class ClassDeclNode extends DeclNode{
         this.classBuild = build;
     }
 
-    public ClassDeclNode(String name , List<VarDeclNode> var , List<FuncDeclNode> func , Location loc){
-        this.name = name;
-        this.location = loc;
-        this.varMember = var;
-        this.funcMember = func;
-        this.classBuild = null;
-    }
-
     public List<VarDeclNode> getVarMember(){
         return varMember;
     }
