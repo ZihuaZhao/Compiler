@@ -21,6 +21,10 @@ public class Compiler {
     private ProgramNode ast;
     private PrintStream irOut;
 
+    public Compiler(InputStream inS){
+        this.inS = inS;
+    }
+
 
     public Compiler(InputStream inS , PrintStream irOut){
         this.inS = inS;
@@ -51,7 +55,7 @@ public class Compiler {
         IRBuilder irBuilder = new IRBuilder(globalScope);
         irBuilder.visit(ast);
         IRRoot irRoot = irBuilder.getIrRoot();
-        new IRPrinter(irOut).visit(irRoot);
+        //new IRPrinter(irOut).visit(irRoot);
     }
 
 }
