@@ -1,7 +1,7 @@
 package Mx_compiler.node;
 
 import Mx_compiler.Scope.FuncEntity;
-import Mx_compiler.ast.AstVisitor;
+import Mx_compiler.visitor.AstVisitor;
 import Mx_compiler.utility.Location;
 
 import java.util.List;

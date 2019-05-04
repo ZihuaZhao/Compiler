@@ -1,4 +1,4 @@
-package Mx_compiler.ast;
+package Mx_compiler.visitor;
 
 import Mx_compiler.node.*;
 

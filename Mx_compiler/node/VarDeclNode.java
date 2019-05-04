@@ -1,6 +1,6 @@
 package Mx_compiler.node;
 
-import Mx_compiler.ast.AstVisitor;
+import Mx_compiler.visitor.AstVisitor;
 
 public class VarDeclNode extends DeclNode {
     private TypeNode type;

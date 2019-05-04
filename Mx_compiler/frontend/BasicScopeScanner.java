@@ -1,6 +1,6 @@
 package Mx_compiler.frontend;
 
-import Mx_compiler.ast.AstVisitor;
+import Mx_compiler.visitor.AstVisitor;
 import Mx_compiler.node.*;
 import Mx_compiler.type.ArrayType;
 import Mx_compiler.type.ClassType;

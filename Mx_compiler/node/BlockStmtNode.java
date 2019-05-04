@@ -1,7 +1,7 @@
 package Mx_compiler.node;
 
 import Mx_compiler.Scope.Scope;
-import Mx_compiler.ast.AstVisitor;
+import Mx_compiler.visitor.AstVisitor;
 import Mx_compiler.utility.Location;
 
 import java.util.ArrayList;
@@ -10,6 +10,11 @@ import java.util.List;
 public class BlockStmtNode extends StmtNode{
     private List<Node> statments;
     private Scope scope;
+
+    public BlockStmtNode(){
+        this.statments = null;
+        this.scope = null;
+    }
 
     public BlockStmtNode(List<Node>stats , Location loc){
         this.statments = stats;
@@ -80,12 +85,20 @@ public class BlockStmtNode extends StmtNode{
         return statments;
     }
 
+    public void  setstmts(List<Node> stmts){
+        this.statments = stmts;
+    }
+
     public void initScope(Scope parentScope){
         scope = new Scope(parentScope);
     }
 
     public Scope getScope(){
         return scope;
+    }
+
+    public void setScope(Scope scope){
+        this.scope = scope;
     }
 
     @Override

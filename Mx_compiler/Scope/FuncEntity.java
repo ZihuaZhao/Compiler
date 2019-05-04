@@ -92,4 +92,8 @@ public class FuncEntity extends Entity {
     public void setReturnType(Type type){
         this.returnType = type;
     }
+
+    public String getClassName(){
+        return className;
+    }
 }

@@ -1,10 +1,8 @@
 package Mx_compiler.compiler;
 
+import Mx_compiler.IR.IRRoot;
 import Mx_compiler.Scope.Scope;
-import Mx_compiler.frontend.AstBuilder;
-import Mx_compiler.frontend.ClassVarMemScanner;
-import Mx_compiler.frontend.FuncScopeScanner;
-import Mx_compiler.frontend.GlobalScopePreScanner;
+import Mx_compiler.frontend.*;
 import Mx_compiler.node.ProgramNode;
 import Mx_grammar.MXLexer;
 import Mx_grammar.MXParser;
@@ -15,13 +13,18 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 public class Compiler {
     private InputStream inS;
     private ProgramNode ast;
+    private PrintStream irOut;
 
-    public Compiler(InputStream inS){
+
+    public Compiler(InputStream inS , PrintStream irOut){
         this.inS = inS;
+        this.irOut = irOut;
     }
 
     private void buildAst() throws Exception{
@@ -45,7 +48,10 @@ public class Compiler {
         cs.visit(ast);
         FuncScopeScanner fs = new FuncScopeScanner(globalScope);
         fs.visit(ast);
-
+        IRBuilder irBuilder = new IRBuilder(globalScope);
+        irBuilder.visit(ast);
+        IRRoot irRoot = irBuilder.getIrRoot();
+        new IRPrinter(irOut).visit(irRoot);
     }
 
 }

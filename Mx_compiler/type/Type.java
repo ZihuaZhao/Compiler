@@ -5,9 +5,14 @@ public class Type {
         VOID , INT , BOOL , STRING , CLASS , ARRAY , FUNCTION , NULL
     }
 
+    int varSize;
     TypeList type;
 
     public TypeList getTypeList(){
         return type;
+    }
+
+    public int getVarSize(){
+        return varSize;
     }
 }
