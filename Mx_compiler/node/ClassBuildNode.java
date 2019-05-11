@@ -3,7 +3,7 @@ package Mx_compiler.node;
 import Mx_compiler.visitor.AstVisitor;
 import Mx_compiler.utility.Location;
 
-public class ClassBuildNode extends Node{
+public class ClassBuildNode extends DeclNode{
     private String name;
     private BlockStmtNode block;
 

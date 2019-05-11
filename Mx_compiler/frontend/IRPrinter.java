@@ -94,7 +94,7 @@ public class IRPrinter implements IRVisitor {
     public void visit(IRFunc node){
         vregMap = new IdentityHashMap<>();
         vregCnt = new HashMap<>();
-        out.printf("func %s" , node.getName());
+        out.printf("func %s " , node.getName());
         for(VirtualReg paraVReg : node.getVirtualRegList()){
             out.printf("$%s " , getVRegID(paraVReg));
         }
@@ -297,5 +297,29 @@ public class IRPrinter implements IRVisitor {
     public void visit(StaticString node){
         if (isStaticDef) out.printf("asciiz @%s %s\n", getStaticDataID(node), node.getValue());
         else out.print("@" + getStaticDataID(node));
+    }
+
+    @Override
+    public void visit(IRHeapAlloc node){
+        out.print("    ");
+        node.getDest().accept(this);
+        out.print(" = alloc ");
+        node.getAllocSize().accept(this);
+        out.println();
+    }
+
+    @Override
+    public void visit(PhysicalReg node){
+        return;
+    }
+
+    @Override
+    public void visit(IRPop node){
+        return;
+    }
+
+    @Override
+    public void visit(IRPush node){
+        return;
     }
 }

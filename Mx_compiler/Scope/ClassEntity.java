@@ -7,6 +7,7 @@ import Mx_compiler.type.Type;
 
 public class ClassEntity extends Entity{
     private Scope scope;
+    private int memSize;
 
     public ClassEntity(String name , Type type , Scope parentScope){
         this.name = name;
@@ -34,6 +35,14 @@ public class ClassEntity extends Entity{
 
     public Scope getScope(){
         return scope;
+    }
+
+    public int getMemSize(){
+        return memSize;
+    }
+
+    public void setMemSize(int memSize){
+        this.memSize = memSize;
     }
 
 }

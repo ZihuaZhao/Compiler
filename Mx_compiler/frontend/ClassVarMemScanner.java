@@ -12,6 +12,7 @@ import Mx_compiler.type.ClassType;
 public class ClassVarMemScanner extends BasicScopeScanner {
     private Scope globalScope , classScope;
     private String className;
+    private int offset = 0;
 
     public ClassVarMemScanner(Scope globalScope){
         this.globalScope = globalScope;
@@ -34,9 +35,11 @@ public class ClassVarMemScanner extends BasicScopeScanner {
         ClassEntity entity  = (ClassEntity) globalScope.getCheck(node.location() , node.getName() , Scope.classKey(node.getName()));
         classScope = entity.getScope();
         className = entity.getName();
+        offset = 0;
         for(VarDeclNode varDeclNode : node.getVarMember()){
             varDeclNode.accept(this);
         }
+        entity.setMemSize(offset);
     }
 
     @Override
@@ -47,6 +50,8 @@ public class ClassVarMemScanner extends BasicScopeScanner {
         }
         checkVarDecl(node);
         VarEntity entity = new VarEntity(node.getName() , node.getType().getType() , className);
+        entity.setAddrOffset(offset);
+        offset += node.getType().getType().getVarSize();
         classScope.putCheck(node.getName() , Scope.varKey(node.getName()) , entity);
     }
 }

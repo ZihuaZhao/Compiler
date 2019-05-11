@@ -20,4 +20,8 @@ public interface IRVisitor {
     void visit(IRCmpOperation node);
     void visit(IRMove node);
     void visit(IRFunctionCall node);
+    void visit(IRHeapAlloc node);
+    void visit(PhysicalReg node);
+    void visit(IRPop node);
+    void visit(IRPush node);
 }

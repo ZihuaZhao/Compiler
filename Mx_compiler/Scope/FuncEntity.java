@@ -29,6 +29,7 @@ public class FuncEntity extends Entity {
         this.params.add(new VarEntity(Scope.THIS_PARA_NAME , new ClassType(className)));
         isMember = true;
         isConstruct = true;
+        this.className = className;
     }
 
     public FuncEntity(FuncDeclNode node , String className){
@@ -42,6 +43,7 @@ public class FuncEntity extends Entity {
         returnType = node.getReturnType().getType();
         isConstruct = false;
         isMember = true;
+        this.className = className;
     }
 
     public FuncEntity(FuncDeclNode node){

@@ -1,5 +1,6 @@
 package Mx_compiler.node;
 
+import Mx_compiler.type.BoolType;
 import Mx_compiler.visitor.AstVisitor;
 import Mx_compiler.utility.Location;
 
@@ -7,6 +8,7 @@ public class BoolLitExprNode extends ExprNode {
     private boolean value;
 
     public BoolLitExprNode(boolean v , Location loc){
+        this.setType(BoolType.getType());
         this.value = v;
         this.location = loc;
     }

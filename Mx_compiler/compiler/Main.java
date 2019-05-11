@@ -4,11 +4,13 @@ import java.io.*;
 
 public class Main {
     public static void main(String[] args)throws Exception{
-//        File infile = new File("H:\\IDEA\\Mx_compiler\\src\\text.txt");
-//        File astOutFile = new File("H:\\IDEA\\Mx_compiler\\src\\astOutFile.txt");
-        InputStream inS = System.in;
-//        PrintStream out = new PrintStream(new FileOutputStream(astOutFile));
-        Compiler compiler = new Compiler(inS);
+        File infile = new File("H:\\IDEA\\Mx_compiler\\src\\text.txt");
+        File irOutFile = new File("H:\\IDEA\\Mx_compiler\\src\\outFile.txt");
+        File nasmOutFile = new File("H:\\IDEA\\Mx_compiler\\src\\nasmOutFile.txt");
+        InputStream inS = new FileInputStream(infile);
+        PrintStream irOut = new PrintStream(new FileOutputStream(irOutFile));
+        PrintStream nasmOut = new PrintStream(new FileOutputStream(nasmOutFile));
+        Compiler compiler = new Compiler(inS , irOut , nasmOut);
         compiler.compile();
     }
 }

@@ -2,6 +2,7 @@ package Mx_compiler.compiler;
 
 import Mx_compiler.IR.IRRoot;
 import Mx_compiler.Scope.Scope;
+import Mx_compiler.backend.*;
 import Mx_compiler.frontend.*;
 import Mx_compiler.node.ProgramNode;
 import Mx_grammar.MXLexer;
@@ -20,15 +21,13 @@ public class Compiler {
     private InputStream inS;
     private ProgramNode ast;
     private PrintStream irOut;
-
-    public Compiler(InputStream inS){
-        this.inS = inS;
-    }
+    private PrintStream nasmOut;
 
 
-    public Compiler(InputStream inS , PrintStream irOut){
+    public Compiler(InputStream inS , PrintStream irOut , PrintStream nasmOut){
         this.inS = inS;
         this.irOut = irOut;
+        this.nasmOut = nasmOut;
     }
 
     private void buildAst() throws Exception{
@@ -55,7 +54,11 @@ public class Compiler {
         IRBuilder irBuilder = new IRBuilder(globalScope);
         irBuilder.visit(ast);
         IRRoot irRoot = irBuilder.getIrRoot();
-        //new IRPrinter(irOut).visit(irRoot);
+        new IRPrinter(irOut).visit(irRoot);
+        new RegPreprocessor(irRoot).run();
+        new RegLiveliness(irRoot).run();
+        new RegAllocator(irRoot).run();
+        new NASMTransform(irRoot).run();
+        new NASMPrinter(nasmOut).visit(irRoot);
     }
-
 }

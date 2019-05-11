@@ -5,6 +5,7 @@ public class StringType extends PrimaryType {
 
     private StringType(){
         type = TypeList.STRING;
+        varSize = 8;
     }
 
     public static StringType getType(){

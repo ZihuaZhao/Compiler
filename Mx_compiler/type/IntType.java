@@ -5,6 +5,7 @@ public class IntType extends PrimaryType{
 
     private IntType(){
         type = TypeList.INT;
+        varSize = 8;
     }
 
     public static IntType getType(){

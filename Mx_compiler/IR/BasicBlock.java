@@ -1,5 +1,6 @@
 package Mx_compiler.IR;
 
+import Mx_compiler.node.StmtNode;
 import Mx_compiler.visitor.IRVisitor;
 
 import java.util.HashSet;
@@ -12,10 +13,25 @@ public class BasicBlock {
     private boolean isJump = false;
     private int postNum = 0 , preNum = 0;
     private Set<BasicBlock> prevBlock = new HashSet<>(), succBlock = new HashSet<>();
+    public StmtNode forNode = null;
 
     public BasicBlock(String name , IRFunc irFunc){
         this.name = name;
         this.irFunc = irFunc;
+    }
+
+    public void reInit(){
+        firstInst = null;
+        lastInst = null;
+        isJump = false;
+    }
+
+    public void setFirstInst(IRInstruction inst){
+        firstInst = inst;
+    }
+
+    public void setLastInst(IRInstruction inst){
+        lastInst = inst;
     }
 
     public void addInst(IRInstruction irInstruction){
@@ -67,10 +83,21 @@ public class BasicBlock {
         prevBlock.add(prev);
     }
 
+    public void delPrevBlock(BasicBlock prev){
+        prevBlock.remove(prev);
+    }
+
     public void addSuccBlock(BasicBlock succ){
         succBlock.add(succ);
         if(succ != null){
             succ.addPrevBlock(this);
+        }
+    }
+
+    public void delSuccBlock(BasicBlock succ){
+        succBlock.remove(succ);
+        if(succ != null){
+            succ.delPrevBlock(this);
         }
     }
 
@@ -85,7 +112,24 @@ public class BasicBlock {
             addSuccBlock(((IRBranch) jumpInst).getElseBlock());
         }
         else if(jumpInst instanceof IRReturn){
-            irFunc.getRetuenList().add((IRReturn)jumpInst);
+            irFunc.getReturnList().add((IRReturn)jumpInst);
+        }
+        else{
+            throw new Error("invalid jump instruction");
+        }
+    }
+
+    public void delJumpInst(){
+        isJump = false;
+        if(lastInst instanceof IRBranch){
+            delSuccBlock(((IRBranch) lastInst).getThenBlock());
+            delSuccBlock(((IRBranch) lastInst).getElseBlock());
+        }
+        else if(lastInst instanceof IRJump){
+            delSuccBlock(((IRJump) lastInst).getTarBlock());
+        }
+        else if(lastInst instanceof IRReturn){
+            irFunc.getReturnList().remove((IRReturn)lastInst);
         }
         else{
             throw new Error("invalid jump instruction");
@@ -102,6 +146,10 @@ public class BasicBlock {
 
     public IRInstruction getFirstInst(){
         return firstInst;
+    }
+
+    public IRInstruction getLastInst(){
+        return lastInst;
     }
 
     public void accept(IRVisitor visitor){

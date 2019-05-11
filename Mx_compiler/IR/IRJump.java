@@ -1,6 +1,9 @@
 package Mx_compiler.IR;
 
 import Mx_compiler.visitor.IRVisitor;
+import org.antlr.v4.codegen.model.OptionalBlock;
+
+import java.util.Map;
 
 public class IRJump extends IRJumpInst{
     private BasicBlock tarBlock;
@@ -16,6 +19,34 @@ public class IRJump extends IRJumpInst{
 
     public void setTarBlock(BasicBlock block){
         this.tarBlock = block;
+    }
+
+    @Override
+    public void reloadUsedReg() {
+        return;
+    }
+
+    @Override
+    public void setUsedRegs(Map<IRReg , IRReg> renameMap) {
+        return;
+    }
+
+    @Override
+    public IRReg getDefinedReg() {
+        return null;
+    }
+
+    @Override
+    public void setDefinedReg(IRReg vreg) {
+        return;
+    }
+
+    @Override
+    public IRJump copyRename(Map<Object , Object> renameMap){
+        return new IRJump(
+                (BasicBlock) renameMap.getOrDefault(getBlock() , getBlock()) ,
+                (BasicBlock) renameMap.getOrDefault(tarBlock , tarBlock)
+        );
     }
 
     public void accept(IRVisitor visitor){

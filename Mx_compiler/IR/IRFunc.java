@@ -10,8 +10,10 @@ public class IRFunc {
     private FuncEntity funcEntity;
     private List<VirtualReg> virtualRegList = new ArrayList<>();
     private List<BasicBlock> reversePostOrder = null , reversePreOrder = null;
-    private List<IRReturn> retuenList = new ArrayList<>();
+    private List<IRReturn> returnList = new ArrayList<>();
     private BasicBlock startBlock = null , endBlock = null;
+    private boolean recursiveCall = false;
+    //builtInCallLabel , isBuiltIn
 
     public IRFunc(FuncEntity funcEntity){
         this.funcEntity = funcEntity;
@@ -33,8 +35,8 @@ public class IRFunc {
         return virtualRegList;
     }
 
-    public List<IRReturn> getRetuenList(){
-        return retuenList;
+    public List<IRReturn> getReturnList(){
+        return returnList;
     }
 
     public void addVirtualReg(VirtualReg virtualReg){
@@ -44,6 +46,40 @@ public class IRFunc {
     public BasicBlock genStartBlock(){
         startBlock = new BasicBlock(funcEntity.getName() + "_entry" , this);
         return startBlock;
+    }
+
+    public BasicBlock getStartBlock(){
+        return startBlock;
+    }
+
+    public BasicBlock getEndBlock(){
+        return endBlock;
+    }
+
+    public void setEndBlock(BasicBlock endBlock){
+        this.endBlock = endBlock;
+    }
+
+    public Set<IRFunc> calleeSet = new HashSet<>();
+    public Set<IRFunc> recursiveCalleeSet = new HashSet<>();
+
+    public void updateCalleeSet(){
+        calleeSet.clear();
+        for(BasicBlock block : getReversePostOrder()){
+            for(IRInstruction inst = block.getFirstInst() ; inst != null ; inst = inst.getSuccInst()){
+                if(inst instanceof IRFunctionCall){
+                    calleeSet.add(((IRFunctionCall) inst).getIrFunc());
+                }
+            }
+        }
+    }
+
+    public void setRecursiveCall(boolean recursiveCall){
+        this.recursiveCalleeSet = recursiveCalleeSet;
+    }
+
+    public boolean isRecursiveCall(){
+        return recursiveCall;
     }
 
     public void accept(IRVisitor visitor){
@@ -105,4 +141,24 @@ public class IRFunc {
         }
         return reversePreOrder;
     }
+
+    private List<StackSlot> stackSlots = new ArrayList<>();
+
+    public List<StackSlot> getStackSlots(){
+        return stackSlots;
+    }
+
+    private Map<VirtualReg , StackSlot> argStackSlotMap = new HashMap<>();
+
+    public Map<VirtualReg , StackSlot> getArgStackSlotMap(){
+        return argStackSlotMap;
+    }
+
+    public Set<PhysicalReg> usedPhysicalGeneralRegs = new HashSet<>();
+
+    public Set<PhysicalReg> getUsedPhysicalGeneralRegs(){
+        return usedPhysicalGeneralRegs;
+    }
+
+
 }

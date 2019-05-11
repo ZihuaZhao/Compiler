@@ -8,7 +8,6 @@ import Mx_compiler.Scope.VarEntity;
 import Mx_compiler.node.*;
 import Mx_compiler.type.*;
 
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +31,35 @@ public class IRBuilder extends BasicScopeScanner {
         this.globalScope = globalScope;
     }
 
+    private void processIRAssign(RegValue dest , int addrOffset , ExprNode rhs , int size , boolean isMemOp){
+        if(rhs.getTrue() != null){
+            BasicBlock mergeBlock = new BasicBlock(null , curFunc);
+            if(isMemOp){
+                rhs.getTrue().addInst(new IRStore(rhs.getTrue() , new Imm(1) , 8 , dest , addrOffset));
+                rhs.getFalse().addInst(new IRStore(rhs.getFalse() , new Imm(0) , 8 , dest , addrOffset));
+            }
+            else{
+                rhs.getTrue().addInst(new IRMove(rhs.getTrue() , (VirtualReg)dest , new Imm(1)));
+                rhs.getFalse().addInst(new IRMove(rhs.getFalse() , (VirtualReg)dest , new Imm(0)));
+            }
+            if(!rhs.getTrue().isJump()){
+                rhs.getTrue().addJumpInst(new IRJump(rhs.getTrue() , mergeBlock));
+            }
+            if(!rhs.getFalse().isJump()){
+                rhs.getFalse().addJumpInst(new IRJump(rhs.getFalse() , mergeBlock));
+            }
+            curBlock = mergeBlock;
+        }
+        else{
+            if(isMemOp){
+                curBlock.addInst(new IRStore(curBlock , rhs.getRegValue() , 8 , dest , addrOffset));
+            }
+            else{
+                curBlock.addInst(new IRMove(curBlock , (IRReg)dest , rhs.getRegValue()));
+            }
+        }
+    }
+
     @Override
     public void visit(ProgramNode node) {
         curScope = globalScope;
@@ -45,6 +73,11 @@ public class IRBuilder extends BasicScopeScanner {
                 curScope = classEntity.getScope();
                 for (FuncDeclNode funcDeclNode : ((ClassDeclNode) declNode).getFuncMember()) {
                     FuncEntity funcEntity = (FuncEntity) curScope.get(Scope.funcKey(funcDeclNode.getName()));
+                    IRFunc irFunc = new IRFunc(funcEntity);
+                    irRoot.addFunc(irFunc);
+                }
+                if(((ClassDeclNode) declNode).getClassBuild() != null){
+                    FuncEntity funcEntity = (FuncEntity) curScope.get(Scope.funcKey(classEntity.getName()));
                     IRFunc irFunc = new IRFunc(funcEntity);
                     irRoot.addFunc(irFunc);
                 }
@@ -66,7 +99,10 @@ public class IRBuilder extends BasicScopeScanner {
               throw new Error("invalid decl node");
             }
         }
-        //TODO
+        for(IRFunc irFunc : irRoot.getFuncs().values()){
+            irFunc.updateCalleeSet();
+        }
+        irRoot.updataCalleeSet();
     }
 
     @Override
@@ -88,15 +124,15 @@ public class IRBuilder extends BasicScopeScanner {
                 curFunc.addVirtualReg(virtualReg);
             }
             if (node.getExpr() == null) {
-                if(!isFuncArg)  curBlock.addInst(new IRMove(curBlock, virtualReg, new Imm(0)));
-                else{
-                    if(node.getExpr().getType() instanceof BoolType && !(node.getExpr() instanceof BoolLitExprNode)){
-                        node.getExpr().setTrue(new BasicBlock(null , curFunc));
-                        node.getExpr().setFalse(new BasicBlock(null , curFunc));
-                    }
-                    node.getExpr().accept(this);
-                    //TODO
+                if (!isFuncArg) curBlock.addInst(new IRMove(curBlock, virtualReg, new Imm(0)));
+            }
+            else{
+                if(node.getExpr().getType() instanceof BoolType && !(node.getExpr() instanceof BoolLitExprNode)){
+                    node.getExpr().setTrue(new BasicBlock(null , curFunc));
+                    node.getExpr().setFalse(new BasicBlock(null , curFunc));
                 }
+                node.getExpr().accept(this);
+                processIRAssign(virtualReg , 0 , node.getExpr() , node.getExpr().getType().getVarSize() , false);
             }
         }
     }
@@ -108,7 +144,29 @@ public class IRBuilder extends BasicScopeScanner {
         for (FuncDeclNode funcDeclNode : node.getFuncMember()) {
             funcDeclNode.accept(this);
         }
+        if(node.getClassBuild() != null){
+            node.getClassBuild().accept(this);
+        }
         curClassName = null;
+    }
+
+    @Override
+    public void visit(ClassBuildNode node){
+        String funcName = node.getName();
+        funcName = String.format("_member_%s_%s" , curClassName , funcName);
+        curFunc = irRoot.getIRFunc(funcName);
+        curBlock = curFunc.genStartBlock();
+        Scope lastScope = curScope;
+        curScope = node.getBlock().getScope();
+        VarEntity varEntity = (VarEntity) curScope.get(Scope.varKey(Scope.THIS_PARA_NAME));
+        VirtualReg virtualReg = new VirtualReg(varEntity.getName());
+        curFunc.addVirtualReg(virtualReg);
+        varEntity.setIrReg(virtualReg);
+        curScope = lastScope;
+        node.getBlock().accept(this);
+        if(!curBlock.isJump()){
+            curBlock.addJumpInst(new IRReturn(curBlock , null));
+        }
     }
 
 
@@ -130,7 +188,7 @@ public class IRBuilder extends BasicScopeScanner {
         }
         isFuncArg = true;
         for (DeclNode declNode : node.getParamList()) {
-            node.accept(this);
+            declNode.accept(this);
         }
         isFuncArg = false;
         curScope = lastScope;
@@ -146,7 +204,31 @@ public class IRBuilder extends BasicScopeScanner {
                 curBlock.addJumpInst(new IRReturn(curBlock , new Imm(0)));
             }
         }
-        //TODO
+        if(curFunc.getReturnList().size() > 1){
+            BasicBlock mergeEndBlock = new BasicBlock(curFunc.getName()+"_end" , curFunc);
+            VirtualReg retReg;
+            if(node.getReturnType() == null || node.getReturnType().getType() instanceof VoidType){
+                retReg = null;
+            }
+            else{
+                retReg = new VirtualReg("return_value");
+            }
+            List<IRReturn> returnInstList = new ArrayList<>(curFunc.getReturnList());
+            for(IRReturn retInst : returnInstList){
+                BasicBlock block = retInst.getBlock();
+                if(retInst.getRegValue() != null){
+                    retInst.prependInst(new IRMove(block , retReg , retInst.getRegValue()));
+                }
+                retInst.remove();
+                block.addJumpInst(new IRJump(block , mergeEndBlock));
+            }
+            mergeEndBlock.addJumpInst(new IRReturn(mergeEndBlock , retReg));
+            curFunc.setEndBlock(mergeEndBlock);
+        }
+        else{
+            curFunc.setEndBlock(curFunc.getReturnList().get(0).getBlock());
+        }
+        curFunc = null;
     }
 
     public FuncDeclNode StaticVarInst() {
@@ -183,6 +265,11 @@ public class IRBuilder extends BasicScopeScanner {
     }
 
     @Override
+    public void visit(ExprStmtNode node){
+        node.getExpr().accept(this);
+    }
+
+    @Override
     public void visit(IfStmtNode node) {
         BasicBlock thenBlock, elseBlock = null, nextBlock;
         if (node.getElseStmt() != null) {
@@ -192,7 +279,7 @@ public class IRBuilder extends BasicScopeScanner {
             node.getCond().setTrue(thenBlock);
             node.getCond().setFalse(elseBlock);
             node.getCond().accept(this);
-            if (node.getCond().getType() instanceof BoolType) {
+            if (node.getCond() instanceof BoolLitExprNode) {
                 curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
             }
         } else {
@@ -201,7 +288,7 @@ public class IRBuilder extends BasicScopeScanner {
             node.getCond().setTrue(thenBlock);
             node.getCond().setFalse(nextBlock);
             node.getCond().accept(this);
-            if (node.getCond().getType() instanceof BoolType) {
+            if (node.getCond() instanceof BoolLitExprNode) {
                 curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
             }
         }
@@ -231,7 +318,7 @@ public class IRBuilder extends BasicScopeScanner {
         node.getCond().accept(this);
         node.getCond().setTrue(bodyBlock);
         node.getCond().setFalse(nextBlock);
-        if (node.getCond().getType() instanceof BoolType) {
+        if (node.getCond() instanceof BoolLitExprNode) {
             curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
         }
         curBlock = bodyBlock;
@@ -260,7 +347,7 @@ public class IRBuilder extends BasicScopeScanner {
             node.getCond().setTrue(bodyBlock);
             node.getCond().setFalse(nextBlock);
             node.getCond().accept(this);
-            if (node.getCond().getType() instanceof BoolType) {
+            if (node.getCond() instanceof BoolLitExprNode) {
                 curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
             }
         }
@@ -301,7 +388,7 @@ public class IRBuilder extends BasicScopeScanner {
                 node.getExpr().setFalse(new BasicBlock(null , curFunc));
                 node.getExpr().accept(this);
                 VirtualReg vreg = new VirtualReg("boolRet");
-                //TODO
+                processIRAssign(vreg , 0 , node.getExpr() , 8 , false);
                 curBlock.addJumpInst(new IRReturn(curBlock , vreg));
             }
             else{
@@ -326,6 +413,7 @@ public class IRBuilder extends BasicScopeScanner {
         node.getExpr().accept(this);
         VirtualReg vreg = new VirtualReg(null);
         curBlock.addInst(new IRMove(curBlock , vreg , node.getExpr().getRegValue()));
+        node.setRegValue(vreg);
         IRBinaryOperation.IRBinaryOp op;
         if(node.getOp() == SuffixExprNode.SuffixOps.SUFFIX_INC){
             op = IRBinaryOperation.IRBinaryOp.ADD;
@@ -341,41 +429,38 @@ public class IRBuilder extends BasicScopeScanner {
         String funcName = funcEntity.getName();
         List<RegValue>args = new ArrayList<>();
         ExprNode thisExpr = null;
-        if(funcEntity.isMember()){
-            if(node.getFunc() instanceof MemberCallExprNode){
-                thisExpr = ((MemberCallExprNode)(node.getFunc())).getExpr();
-            }
-            else{
+        if(funcEntity.isMember()) {
+            if (node.getFunc() instanceof MemberCallExprNode) {
+                thisExpr = ((MemberCallExprNode) (node.getFunc())).getExpr();
+            } else {
                 thisExpr = new ThisExprNode(null);
                 thisExpr.setType(new ClassType(curClassName));
             }
             thisExpr.accept(this);
             String className;
-            if(thisExpr.getType() instanceof ClassType){
+            if (thisExpr.getType() instanceof ClassType) {
                 className = ((ClassType) thisExpr.getType()).getName();
-            }
-            else if(thisExpr.getType() instanceof ArrayType){
+            } else if (thisExpr.getType() instanceof ArrayType) {
                 className = Scope.ARRAY_CLASS_NAME;
-            }
-            else{
+            } else {
                 className = Scope.STRING_CLASS_NAME;
             }
-            funcName = String.format("_member_%s_%s" , className , funcName);
+            funcName = String.format("_member_%s_%s", className, funcName);
             args.add(thisExpr.getRegValue());
-            if(funcEntity.isBuiltIn()){
-                //TODO
-            }
-            for(ExprNode arg : node.getArgs()){
-                arg.accept(this);
-                args.add(arg.getRegValue());
-            }
-            IRFunc irFunc = irRoot.getIRFunc(funcName);
-            VirtualReg vreg = new VirtualReg(null);
-            curBlock.addInst(new IRFunctionCall(curBlock , irFunc , args , vreg));
-            node.setRegValue(vreg);
-            if(node.getTrue() != null){
-                curBlock.addJumpInst(new IRBranch(curBlock , node.getRegValue() , node.getTrue() , node.getFalse()));
-            }
+        }
+        if (funcEntity.isBuiltIn()) {
+            //TODO
+        }
+        for(ExprNode arg : node.getArgs()){
+            arg.accept(this);
+            args.add(arg.getRegValue());
+        }
+        IRFunc irFunc = irRoot.getIRFunc(funcName);
+        VirtualReg vreg = new VirtualReg(null);
+        curBlock.addInst(new IRFunctionCall(curBlock , irFunc , args , vreg));
+        node.setRegValue(vreg);
+        if(node.getTrue() != null){
+            curBlock.addJumpInst(new IRBranch(curBlock , node.getRegValue() , node.getTrue() , node.getFalse()));
         }
     }
 
@@ -412,7 +497,8 @@ public class IRBuilder extends BasicScopeScanner {
         VirtualReg vreg = new VirtualReg(null);
         node.setRegValue(vreg);
         curBlock.addInst(new IRLoad(curBlock , vreg , varEntity.getType().getVarSize() , addr , varEntity.getAddrOffset()));
-        curBlock.addJumpInst(new IRBranch(curBlock , node.getRegValue() , node.getTrue() , node.getFalse()));
+        if(node.getTrue() != null)
+            curBlock.addJumpInst(new IRBranch(curBlock , node.getRegValue() , node.getTrue() , node.getFalse()));
     }
 
     @Override
@@ -686,13 +772,32 @@ public class IRBuilder extends BasicScopeScanner {
                 break;
             default:
                 throw new Error("invalid operation");
-
         }
     }
 
     @Override
     public void visit(AssignExprNode node){
-        //TODO
+        boolean isMemOp = isMemExpr(node.getLeft());
+        isAddr = isMemOp;
+        node.getLeft().accept(this);
+        isAddr = false;
+        if(node.getRight().getType() instanceof BoolType && !(node.getRight() instanceof BoolLitExprNode)){
+            node.getRight().setTrue(new BasicBlock(null , curFunc));
+            node.getRight().setFalse(new BasicBlock(null , curFunc));
+        }
+        node.getRight().accept(this);
+        RegValue dest;
+        int offset;
+        if(isMemOp){
+            dest = node.getLeft().getAddrValue();
+            offset = node.getLeft().getAddrOffset();
+        }
+        else{
+            dest = node.getLeft().getRegValue();
+            offset = 0;
+        }
+        processIRAssign(dest , offset , node.getRight() , 8 , isMemOp);
+        node.setRegValue(node.getRight().getRegValue());
     }
 
     @Override
@@ -761,5 +866,66 @@ public class IRBuilder extends BasicScopeScanner {
     @Override
     public void visit(TypeNode node){
         return;
+    }
+
+    public void processArrayNew(CreatorExprNode node , VirtualReg oreg , RegValue addr , int index){
+        VirtualReg vreg = new VirtualReg(null);
+        ExprNode dim = node.getDims().get(index);
+        boolean tmpAddr = isAddr;
+        isAddr = false;
+        dim.accept(this);
+        isAddr = tmpAddr;
+        curBlock.addInst(new IRBinaryOperation(curBlock , vreg , IRBinaryOperation.IRBinaryOp.MUL , dim.getRegValue() , new Imm(8)));
+        curBlock.addInst(new IRBinaryOperation(curBlock , vreg , IRBinaryOperation.IRBinaryOp.ADD , vreg , new Imm(8)));
+        curBlock.addInst(new IRHeapAlloc(curBlock , vreg , vreg));
+        curBlock.addInst(new IRStore(curBlock , dim.getRegValue() , 8 , vreg , 0));
+        if (index < node.getDims().size() - 1) {
+            VirtualReg loop_idx = new VirtualReg(null);
+            VirtualReg addrNow = new VirtualReg(null);
+            curBlock.addInst(new IRMove(curBlock , loop_idx , new Imm(0)));
+            curBlock.addInst(new IRMove(curBlock , addrNow , vreg));
+            BasicBlock condBlock = new BasicBlock("while_cond" , curFunc);
+            BasicBlock bodyBlock = new BasicBlock("while_body" , curFunc);
+            BasicBlock nextBlock = new BasicBlock("while_next" , curFunc);
+            curBlock.addJumpInst(new IRJump(curBlock , condBlock));
+            curBlock = condBlock;
+            IRCmpOperation.IRCmpOp op = IRCmpOperation.IRCmpOp.LT;
+            VirtualReg cmpReg = new VirtualReg(null);
+            curBlock.addInst(new IRCmpOperation(curBlock , cmpReg , op , loop_idx , dim.getRegValue()));
+            curBlock.addJumpInst(new IRBranch(curBlock , cmpReg , bodyBlock , nextBlock));
+            curBlock = bodyBlock;
+            curBlock.addInst(new IRBinaryOperation(curBlock , addrNow , IRBinaryOperation.IRBinaryOp.ADD , addrNow , new Imm(8)));
+            processArrayNew(node , null , addrNow , index + 1);
+            curBlock.addInst(new IRBinaryOperation(curBlock , loop_idx , IRBinaryOperation.IRBinaryOp.ADD , loop_idx , new Imm(1)));
+            curBlock.addJumpInst(new IRJump(curBlock , condBlock));
+            curBlock = nextBlock;
+        }
+        if (index == 0) {
+            curBlock.addInst(new IRMove(curBlock , oreg , vreg));
+        } else {
+            curBlock.addInst(new IRStore(curBlock , vreg, 8, addr, 0));
+        }
+    }
+
+    @Override
+    public void visit(CreatorExprNode node){
+        VirtualReg vreg = new VirtualReg(null);
+        Type type = node.getNewType().getType();
+        if(type instanceof ClassType){
+            String className = ((ClassType) type).getName();
+            ClassEntity classEntity = (ClassEntity) curScope.get(Scope.classKey(className));
+            curBlock.addInst(new IRHeapAlloc(curBlock , vreg , new Imm(classEntity.getMemSize())));
+            String funcName = String.format("_member_%s_%s" , className , className);
+            IRFunc irFunc = irRoot.getIRFunc(funcName);
+            if(irFunc != null){
+                List<RegValue> args = new ArrayList<>();
+                args.add(vreg);
+                curBlock.addInst(new IRFunctionCall(curBlock , irFunc));
+            }
+        }
+        else{
+            processArrayNew(node , vreg , null , 0);
+        }
+        node.setRegValue(vreg);
     }
 }

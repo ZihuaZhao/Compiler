@@ -5,6 +5,7 @@ public class BoolType extends PrimaryType {
 
     private BoolType(){
         type = TypeList.BOOL;
+        varSize = 8;
     }
 
     public static BoolType getType(){

@@ -2,6 +2,8 @@ package Mx_compiler.IR;
 
 import Mx_compiler.visitor.IRVisitor;
 
+import java.util.Map;
+
 public class IRBinaryOperation extends IRInstruction{
     public enum IRBinaryOp{
         ADD , SUB , MUL , DIV , MOD ,
@@ -18,6 +20,7 @@ public class IRBinaryOperation extends IRInstruction{
         this.op = op;
         this.lhs = lhs;
         this.rhs = rhs;
+        reloadUsedReg();
     }
 
     public IRReg getDest(){
@@ -38,6 +41,44 @@ public class IRBinaryOperation extends IRInstruction{
 
     public RegValue getRhs(){
         return rhs;
+    }
+
+    @Override
+    public void reloadUsedReg(){
+        usedRegValues.clear();
+        usedRegs.clear();
+        if(lhs instanceof IRReg)
+            usedRegs.add((IRReg) lhs);
+        if(rhs instanceof IRReg)
+            usedRegs.add((IRReg) rhs);
+        usedRegValues.add(lhs);
+        usedRegValues.add(rhs);
+    }
+
+    @Override
+    public void setUsedRegs(Map<IRReg , IRReg> renameMap){
+        if(lhs instanceof IRReg)
+            lhs = renameMap.get(lhs);
+        if(rhs instanceof IRReg)
+            rhs = renameMap.get(rhs);
+        reloadUsedReg();
+    }
+
+    @Override
+    public IRReg getDefinedReg(){
+        return dest;
+    }
+
+    @Override
+    public void setDefinedReg(IRReg vreg){
+        dest = vreg;
+    }
+
+    @Override
+    public IRBinaryOperation copyRename(Map<Object , Object> renameMap){
+        return new IRBinaryOperation((BasicBlock) renameMap.getOrDefault(getBlock() , getBlock()) ,
+                (IRReg) renameMap.getOrDefault(dest , dest) , op , (RegValue) renameMap.getOrDefault(lhs , lhs) ,
+                (RegValue) renameMap.getOrDefault(rhs , rhs));
     }
 
     public void accept(IRVisitor visitor){

@@ -1,18 +1,36 @@
 package Mx_compiler.IR;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import Mx_compiler.node.StmtNode;
+
+import java.util.*;
 
 public class IRRoot {
     private Map<String , IRFunc> funcs = new HashMap<>();
     private Map<String , IRFunc> builtInFuncs = new HashMap<>();
     private List<StaticData> staticDataList = new ArrayList<>();
     private Map<String , StaticString> staticStringMap = new HashMap<>();
+    private PhysicalReg preg0 , preg1;
+    private int maxNumFuncArgs = 3;
+    private boolean hasDivShiftInst = false;
 
     public IRRoot(){
         //TODO
+    }
+
+    public PhysicalReg getPreg0(){
+        return preg0;
+    }
+
+    public PhysicalReg getPreg1(){
+        return preg1;
+    }
+
+    public void setPreg0(PhysicalReg preg0){
+        this.preg0 = preg0;
+    }
+
+    public void setPreg1(PhysicalReg preg1){
+        this.preg1 = preg1;
     }
 
     public void addFunc(IRFunc irFunc){
@@ -45,5 +63,57 @@ public class IRRoot {
 
     public List<StaticData> getStaticDataList(){
         return staticDataList;
+    }
+
+    public int getMaxNumFuncArgs(){
+        return maxNumFuncArgs;
+    }
+
+    public void setMaxNumFuncArgs(int maxNumFuncArgs){
+        this.maxNumFuncArgs = maxNumFuncArgs;
+    }
+
+    public boolean isHasDivShiftInst(){
+        return hasDivShiftInst;
+    }
+
+    public void setHasDivShiftInst(boolean hasDivShiftInst){
+        this.hasDivShiftInst = hasDivShiftInst;
+    }
+
+    public static class ForRecord{
+        public BasicBlock condBlock , stepBlock , bodyBlock , nextBlock;
+        public boolean processed = false;
+
+        public ForRecord(BasicBlock condBlock , BasicBlock stepBlock , BasicBlock bodyBlock , BasicBlock nextBlock){
+            this.condBlock = condBlock;
+            this.stepBlock = stepBlock;
+            this.bodyBlock = bodyBlock;
+            this.nextBlock = nextBlock;
+        }
+    }
+    public Map<StmtNode, ForRecord> forRecMap = new HashMap<>();
+
+    public void updataCalleeSet(){
+        Set<IRFunc> recursiveCalleeSet = new HashSet<>();
+        for(IRFunc irFunc : funcs.values()){
+            irFunc.recursiveCalleeSet.clear();
+        }
+        boolean changed = true;
+        while(changed){
+            changed = false;
+            for(IRFunc irFunc : funcs.values()){
+                recursiveCalleeSet.clear();
+                recursiveCalleeSet.addAll(irFunc.calleeSet);
+                for(IRFunc calleeFunc : irFunc.calleeSet){
+                    recursiveCalleeSet.addAll(calleeFunc.recursiveCalleeSet);
+                }
+                if(!recursiveCalleeSet.equals(irFunc.recursiveCalleeSet)){
+                    irFunc.recursiveCalleeSet.clear();
+                    irFunc.recursiveCalleeSet.addAll(recursiveCalleeSet);
+                    changed = true;
+                }
+            }
+        }
     }
 }

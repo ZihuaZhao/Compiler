@@ -66,12 +66,26 @@ public class FuncScopeScanner extends BasicScopeScanner{
     }
 
     @Override
+    public void visit(ClassBuildNode node){
+        FuncEntity entity = (FuncEntity)curScope.getCheck(node.location() , node.getName() , Scope.funcKey(node.getName()));
+        node.getBlock().initScope(curScope);
+        curScope = node.getBlock().getScope();
+        String key = Scope.varKey(Scope.THIS_PARA_NAME);
+        curScope.putCheck(Scope.THIS_PARA_NAME , key , new VarEntity(Scope.THIS_PARA_NAME , curClassType));
+        curScope = curScope.getParent();
+        node.getBlock().accept(this);
+    }
+
+    @Override
     public void visit(ClassDeclNode node){
         ClassEntity entity = (ClassEntity) curScope.getCheck(node.location() , node.getName() , Scope.classKey(node.getName()));
         curScope = entity.getScope();
         curClassType = (ClassType) entity.getType();
         for(FuncDeclNode declNode : node.getFuncMember()){
             declNode.accept(this);
+        }
+        if(node.getClassBuild() != null){
+            node.getClassBuild().accept(this);
         }
         curScope = curScope.getParent();
         curClassType = null;
