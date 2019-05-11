@@ -24,6 +24,11 @@ public class Compiler {
     private PrintStream nasmOut;
 
 
+    public Compiler(InputStream inS , OutputStream outS){
+        this.inS = inS;
+        this.nasmOut = outS;
+    }
+
     public Compiler(InputStream inS , PrintStream irOut , PrintStream nasmOut){
         this.inS = inS;
         this.irOut = irOut;
@@ -54,7 +59,7 @@ public class Compiler {
         IRBuilder irBuilder = new IRBuilder(globalScope);
         irBuilder.visit(ast);
         IRRoot irRoot = irBuilder.getIrRoot();
-        new IRPrinter(irOut).visit(irRoot);
+        //new IRPrinter(irOut).visit(irRoot);
         new RegPreprocessor(irRoot).run();
         new RegLiveliness(irRoot).run();
         new RegAllocator(irRoot).run();
