@@ -11,7 +11,7 @@ public class Main {
         //PrintStream irOut = new PrintStream(new FileOutputStream(irOutFile));
         //PrintStream nasmOut = new PrintStream(new FileOutputStream(nasmOutFile));
         InputStream inS = System.in;
-        OutputStream outS = System.out;
+        PrintStream outS = System.out;
         Compiler compiler = new Compiler(inS , outS);
         compiler.compile();
     }

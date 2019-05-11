@@ -24,7 +24,7 @@ public class Compiler {
     private PrintStream nasmOut;
 
 
-    public Compiler(InputStream inS , OutputStream outS){
+    public Compiler(InputStream inS , PrintStream outS){
         this.inS = inS;
         this.nasmOut = outS;
     }
