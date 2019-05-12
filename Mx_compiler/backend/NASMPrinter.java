@@ -81,7 +81,7 @@ public class NASMPrinter implements IRVisitor {
         }
         out.println();
         try{
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("src/Mx_compiler/c2nasm/builtin_functions.asm"));
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("Mx_compiler/c2nasm/builtin_functions.asm"));
             String line;
             while((line = bufferedReader.readLine()) != null){
                 out.println(line);
