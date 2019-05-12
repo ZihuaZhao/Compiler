@@ -133,19 +133,16 @@ public class NASMTransform {
                         }
                         for(int i = 0 ; i < 6 ; ++i){
                             if(args.size() <= i) break;
-                            if(arg6BakOffset.get(i) == -1){
-                                if(args.get(i) instanceof StackSlot){
-                                    if(args.get(i) instanceof StackSlot){
-                                        inst.prependInst(new IRLoad(inst.getBlock() , rax , 8 , rbp , funcInfo.stackSlotOffsetMap.get(args.get(i))));
-                                        inst.prependInst(new IRMove(inst.getBlock() , arg6.get(i) , rax));
-                                    }
-                                    else{
-                                        inst.prependInst(new IRMove(inst.getBlock() , arg6.get(i) , args.get(i)));
-                                    }
+                            if(arg6BakOffset.get(i) == -1) {
+                                if (args.get(i) instanceof StackSlot) {
+                                    inst.prependInst(new IRLoad(inst.getBlock(), rax, 8, rbp, funcInfo.stackSlotOffsetMap.get(args.get(i))));
+                                    inst.prependInst(new IRMove(inst.getBlock(), arg6.get(i), rax));
+                                } else {
+                                    inst.prependInst(new IRMove(inst.getBlock(), arg6.get(i), args.get(i)));
                                 }
-                                else{
-                                    inst.prependInst(new IRLoad(inst.getBlock() , arg6.get(i) , 8 , rsp , 8 * (bakOffset - arg6BakOffset.get(i) - 1)));
-                                }
+                            }
+                            else{
+                                inst.prependInst(new IRLoad(inst.getBlock() , arg6.get(i) , 8 , rsp , 8 * (bakOffset - arg6BakOffset.get(i) - 1)));
                             }
                         }
                         if(bakOffset > 0)

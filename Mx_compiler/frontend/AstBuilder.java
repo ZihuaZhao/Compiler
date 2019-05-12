@@ -446,7 +446,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
 
     @Override
     public Node visitStringLit(MXParser.StringLitContext ctx){
-        String value = ctx.StringLiteral().getText();
+        String value = ctx.StringLiteral().getText().substring(1 , ctx.StringLiteral().getText().length() - 1);
         return new StringLitExprNode(value , Location.fromCtx(ctx));
     }
 
