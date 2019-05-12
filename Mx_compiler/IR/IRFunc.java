@@ -13,7 +13,8 @@ public class IRFunc {
     private List<IRReturn> returnList = new ArrayList<>();
     private BasicBlock startBlock = null , endBlock = null;
     private boolean recursiveCall = false;
-    //builtInCallLabel , isBuiltIn
+    private String builtInCallLabel;
+    private boolean isBuiltIn = false;
 
     public IRFunc(FuncEntity funcEntity){
         this.funcEntity = funcEntity;
@@ -21,6 +22,13 @@ public class IRFunc {
         if(funcEntity.isMember()){
             name = String.format("_member_%s_%s" , funcEntity.getClassName() , funcEntity.getName());
         }
+    }
+
+    public IRFunc(String name , String builtInCallLabel){
+        this.name = name;
+        this.builtInCallLabel = builtInCallLabel;
+        this.funcEntity = null;
+        this.isBuiltIn = true;
     }
 
     public String getName(){
@@ -160,5 +168,11 @@ public class IRFunc {
         return usedPhysicalGeneralRegs;
     }
 
+    public String getBuiltInCallLabel(){
+        return builtInCallLabel;
+    }
 
+    public boolean isBuiltIn(){
+        return isBuiltIn;
+    }
 }

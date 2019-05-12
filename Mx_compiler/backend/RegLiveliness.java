@@ -185,7 +185,7 @@ public class RegLiveliness {
         while(eliminationChanged){
             eliminationChanged = false;
             for(IRFunc irFunc : irRoot.getFuncs().values()){
-                //TODO
+                if(irFunc.isBuiltIn()) continue;
                 tryEliminate(irFunc);
                 removeBlankBlock(irFunc);
                 livelinessCheck(irFunc);

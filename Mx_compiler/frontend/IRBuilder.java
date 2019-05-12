@@ -423,6 +423,110 @@ public class IRBuilder extends BasicScopeScanner {
         isAddr = tmpAddr;
     }
 
+    public void processPrintFuncCall(ExprNode arg , String funcName){
+        if(arg instanceof BinaryExprNode){
+            processPrintFuncCall(((BinaryExprNode) arg).getLeft() , "print");
+            processPrintFuncCall(((BinaryExprNode) arg).getRight() , funcName);
+            return;
+        }
+        IRFunc calleeFunc;
+        List<RegValue> args = new ArrayList<>();
+        if(arg instanceof FuncCallExprNode && ((FuncCallExprNode) arg).getFuncEntity().getName() == "toString"){
+            ExprNode intExpr = ((FuncCallExprNode) arg).getArgs().get(0);
+            intExpr.accept(this);
+            calleeFunc = irRoot.getBuiltInFunc(funcName + "Int");
+            args.add(intExpr.getRegValue());
+        }
+        else{
+            arg.accept(this);
+            calleeFunc = irRoot.getBuiltInFunc(funcName);
+            args.add(arg.getRegValue());
+        }
+        curBlock.addInst(new IRFunctionCall(curBlock , calleeFunc , args , null));
+    }
+
+    public void processBuiltInFuncCall(FuncCallExprNode node , ExprNode thisExpr , FuncEntity funcEntity , String funcName){
+        boolean wantAddrBak = isAddr;
+        isAddr = false;
+        ExprNode arg0 , arg1;
+        VirtualReg vreg;
+        IRFunc calleeFunc;
+        List<RegValue> args = new ArrayList<>();
+        switch(funcName){
+            case IRRoot.BUILTIN_PRINT_FUNC_NAME:
+            case IRRoot.BUILTIN_PRINTLN_FUNC_NAME:
+                arg0 = node.getArgs().get(0);
+                processPrintFuncCall(arg0 , funcName);
+                break;
+            case IRRoot.BUILTIN_GET_STRING_FUNC_NAME:
+                vreg = new VirtualReg("getString");
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_GET_STRING_FUNC_NAME);
+                args.clear();
+                curBlock.addInst(new IRFunctionCall(curBlock , calleeFunc , args , vreg));
+                node.setRegValue(vreg);
+                break;
+            case IRRoot.BUILTIN_GET_INT_FUNC_NAME:
+                vreg = new VirtualReg("getInt");
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_GET_INT_FUNC_NAME);
+                args.clear();
+                curBlock.addInst(new IRFunctionCall(curBlock , calleeFunc , args , vreg));
+                node.setRegValue(vreg);
+                break;
+            case IRRoot.BUILTIN_TO_STRING_FUNC_NAME:
+                arg0 = node.getArgs().get(0);
+                arg0.accept(this);
+                vreg = new VirtualReg("toString");
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_TO_STRING_FUNC_NAME);
+                args.clear();
+                args.add(arg0.getRegValue());
+                curBlock.addInst(new IRFunctionCall(curBlock, calleeFunc, args, vreg));
+                node.setRegValue(vreg);
+                break;
+            case IRRoot.BUILTIN_STRING_SUBSTRING_FUNC_NAME:
+                arg0 = node.getArgs().get(0);
+                arg0.accept(this);
+                arg1 = node.getArgs().get(1);
+                arg1.accept(this);
+                vreg = new VirtualReg("subString");
+                args.clear();
+                args.add(thisExpr.getRegValue());
+                args.add(arg0.getRegValue());
+                args.add(arg1.getRegValue());
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_SUBSTRING_FUNC_NAME);
+                curBlock.addInst(new IRFunctionCall(curBlock, calleeFunc, args, vreg));
+                node.setRegValue(vreg);
+                break;
+            case IRRoot.BUILTIN_STRING_PARSEINT_FUNC_NAME:
+                vreg = new VirtualReg("parseInt");
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_PARSEINT_FUNC_NAME);
+                args.clear();
+                args.add(thisExpr.getRegValue());
+                curBlock.addInst(new IRFunctionCall(curBlock, calleeFunc, args, vreg));
+                node.setRegValue(vreg);
+                break;
+            case IRRoot.BUILTIN_STRING_ORD_FUNC_NAME:
+                vreg = new VirtualReg("ord");
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_ORD_FUNC_NAME);
+                args.clear();
+                args.add(thisExpr.getRegValue());
+                arg0 = node.getArgs().get(0);
+                arg0.accept(this);
+                args.add(arg0.getRegValue());
+                curBlock.addInst(new IRFunctionCall(curBlock, calleeFunc, args, vreg));
+                node.setRegValue(vreg);
+                break;
+            case IRRoot.BUILTIN_STRING_LENGTH_FUNC_NAME:
+            case IRRoot.BUILTIN_ARRAY_SIZE_FUNC_NAME:
+                vreg = new VirtualReg("sizeOrLength");
+                curBlock.addInst(new IRLoad(curBlock, vreg, 8, thisExpr.getRegValue(), 0));
+                node.setRegValue(vreg);
+                break;
+            default:
+                throw new Error("invalid built_in func");
+        }
+        isAddr = wantAddrBak;
+    }
+
     @Override
     public void visit(FuncCallExprNode node){
         FuncEntity funcEntity = node.getFuncEntity();
@@ -449,7 +553,8 @@ public class IRBuilder extends BasicScopeScanner {
             args.add(thisExpr.getRegValue());
         }
         if (funcEntity.isBuiltIn()) {
-            //TODO
+            processBuiltInFuncCall(node , thisExpr , funcEntity , funcName);
+            return;
         }
         for(ExprNode arg : node.getArgs()){
             arg.accept(this);

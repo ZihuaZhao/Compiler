@@ -4,6 +4,8 @@ import Mx_compiler.IR.*;
 import Mx_compiler.visitor.IRVisitor;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -78,7 +80,16 @@ public class NASMPrinter implements IRVisitor {
             irFunc.accept(this);
         }
         out.println();
-        //TODO
+        try{
+            BufferedReader bufferedReader = new BufferedReader(new FileReader("src/Mx_compiler/c2nasm/builtin_functions.asm"));
+            String line;
+            while((line = bufferedReader.readLine()) != null){
+                out.println(line);
+            }
+        }
+        catch(IOException error){
+            throw new Error("IO exception for builtin");
+        }
     }
 
     @Override
@@ -361,8 +372,8 @@ public class NASMPrinter implements IRVisitor {
 
     @Override
     public void visit(IRFunctionCall node){
-        //TODO
-        out.println("\t\tcall\t" + blockId(node.getIrFunc().getStartBlock()));
+        if(node.getIrFunc().isBuiltIn()) out.println("\t\tcall\t" + node.getIrFunc().getBuiltInCallLabel());
+        else out.println("\t\tcall\t" + blockId(node.getIrFunc().getStartBlock()));
     }
 
     @Override

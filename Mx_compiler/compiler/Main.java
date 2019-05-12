@@ -13,6 +13,7 @@ public class Main {
         InputStream inS = System.in;
         PrintStream outS = System.out;
         Compiler compiler = new Compiler(inS , outS);
+        //Compiler compiler = new Compiler(inS , nasmOut);
         compiler.compile();
     }
 }

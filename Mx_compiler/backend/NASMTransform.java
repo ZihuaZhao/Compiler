@@ -52,7 +52,9 @@ public class NASMTransform {
             }
             funcInfoMap.put(irFunc , funcInfo);
         }
-        //TODO
+        for(IRFunc builtInFunc : irRoot.getBuiltInFuncs().values()){
+            funcInfoMap.put(builtInFunc , new FuncInfo());
+        }
         for(IRFunc irFunc : funcInfoMap.keySet()){
             FuncInfo funcInfo = funcInfoMap.get(irFunc);
             funcInfo.recursiveUsedRegs.addAll(irFunc.getUsedPhysicalGeneralRegs());
