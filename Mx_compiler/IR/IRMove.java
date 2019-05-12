@@ -35,7 +35,7 @@ public class IRMove extends IRInstruction{
     @Override
     public void setUsedRegs(Map<IRReg , IRReg> renameMap){
         if(rhs instanceof IRReg)
-            renameMap.get(rhs);
+            rhs = renameMap.get(rhs);
         reloadUsedReg();
     }
 

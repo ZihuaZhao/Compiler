@@ -59,6 +59,7 @@ public class Compiler {
         IRBuilder irBuilder = new IRBuilder(globalScope);
         irBuilder.visit(ast);
         IRRoot irRoot = irBuilder.getIrRoot();
+        new TwoRegTransform(irRoot).run();
         //new IRPrinter(irOut).visit(irRoot);
         new RegPreprocessor(irRoot).run();
         new RegLiveliness(irRoot).run();

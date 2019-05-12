@@ -11,11 +11,6 @@ public class IRFunctionCall extends IRInstruction {
     private List<RegValue> args = new ArrayList<>();
     private IRReg vreg;
 
-    public IRFunctionCall(BasicBlock block , IRFunc irFunc){
-        super(block);
-        this.irFunc = irFunc;
-    }
-
     public IRFunctionCall(BasicBlock curBlock , IRFunc irFunc , List<RegValue> args , IRReg vreg){
         super(curBlock);
         this.irFunc = irFunc;

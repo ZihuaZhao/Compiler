@@ -154,7 +154,7 @@ public class NASMPrinter implements IRVisitor {
             node.getRhs().accept(this);
             out.println();
             out.print("\t\tmov\t\trax, ");
-            node.accept(this);
+            node.getLhs().accept(this);
             out.println();
             out.println("\t\tmov\t\t" + preg0.getName() + ", rdx");
             out.println("\t\tcdq");
@@ -188,7 +188,7 @@ public class NASMPrinter implements IRVisitor {
         }
         else{
             if(node.getDest() != node.getLhs()){
-                throw new Error("binary op should have same lhs and rhs");
+                throw new Error("binary op should have same lhs and dest");
             }
             String op;
             switch(node.getOp()){
@@ -240,7 +240,7 @@ public class NASMPrinter implements IRVisitor {
     public void visit(IRCmpOperation node){
         if(node.getLhs() instanceof PhysicalReg){
             out.print("\t\tand\t\t");
-            node.accept(this);
+            node.getLhs().accept(this);
             out.println(", -1");
         }
         else{

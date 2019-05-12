@@ -69,7 +69,7 @@ public class IRLoad extends IRInstruction{
     @Override
     public void setUsedRegs(Map<IRReg , IRReg> renameMap){
         if(addr instanceof  IRReg && !(addr instanceof StackSlot))
-            renameMap.get(addr);
+            addr = renameMap.get(addr);
         reloadUsedReg();
     }
 

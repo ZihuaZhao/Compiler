@@ -23,6 +23,10 @@ public class IRBinaryOperation extends IRInstruction{
         reloadUsedReg();
     }
 
+    public boolean isCommutativeOp(){
+        return op == IRBinaryOp.ADD || op == IRBinaryOp.MUL || op == IRBinaryOp.BITWISE_AND || op == IRBinaryOp.BITWISE_OR || op == IRBinaryOp.BITWISE_XOR;
+    }
+
     public IRReg getDest(){
         return dest;
     }
@@ -39,8 +43,18 @@ public class IRBinaryOperation extends IRInstruction{
         return lhs;
     }
 
+    public void setLhs(RegValue lhs){
+        this.lhs = lhs;
+        reloadUsedReg();
+    }
+
     public RegValue getRhs(){
         return rhs;
+    }
+
+    public void setRhs(RegValue rhs){
+        this.rhs = rhs;
+        reloadUsedReg();
     }
 
     @Override

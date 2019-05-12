@@ -193,7 +193,7 @@ public class IRBuilder extends BasicScopeScanner {
         isFuncArg = false;
         curScope = lastScope;
         if(node.getName().equals("main")){
-            curBlock.addInst(new IRFunctionCall(curBlock , irRoot.getIRFunc("_init_func")));
+            curBlock.addInst(new IRFunctionCall(curBlock , irRoot.getIRFunc("_init_func") , new ArrayList<>() , null));
         }
         node.getFuncBody().accept(this);
         if(!curBlock.isJump()){
@@ -920,7 +920,7 @@ public class IRBuilder extends BasicScopeScanner {
             if(irFunc != null){
                 List<RegValue> args = new ArrayList<>();
                 args.add(vreg);
-                curBlock.addInst(new IRFunctionCall(curBlock , irFunc));
+                curBlock.addInst(new IRFunctionCall(curBlock , irFunc , args , null));
             }
         }
         else{

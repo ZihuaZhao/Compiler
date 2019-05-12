@@ -149,29 +149,30 @@ public class RegAllocator {
             vregInfoMap.clear();
             vregNodes.clear();
             degreeSmallVregNodes.clear();
-            for(VirtualReg arg : irFunc.getVirtualRegList()){
-                for(BasicBlock block : irFunc.getReversePostOrder()){
-                    for(IRInstruction inst = block.getFirstInst() ; inst != null ; inst = inst.getSuccInst()){
-                        IRReg definedReg = inst.getDefinedReg();
-                        if(!(definedReg instanceof VirtualReg))
-                            continue;
-                        VirtualRegInfo vregInfo = getVregInfo((VirtualReg) definedReg);
-                        if(inst instanceof IRMove){
-                            RegValue rhs = ((IRMove) inst).getRhs();
-                            if(rhs instanceof VirtualReg){
-                                vregInfo.suggestSameRegs.add((VirtualReg) rhs);
-                                getVregInfo((VirtualReg) rhs).suggestSameRegs.add((VirtualReg) definedReg);
-                            }
-                            for(VirtualReg vreg : inst.liveOut){
-                                if(vreg != rhs && vreg != definedReg)
-                                    addEdge(vreg , (VirtualReg) definedReg);
-                            }
+            for(VirtualReg arg : irFunc.getVirtualRegList()) {
+                getVregInfo(arg);
+            }
+            for(BasicBlock block : irFunc.getReversePostOrder()){
+                for(IRInstruction inst = block.getFirstInst() ; inst != null ; inst = inst.getSuccInst()){
+                    IRReg definedReg = inst.getDefinedReg();
+                    if(!(definedReg instanceof VirtualReg))
+                        continue;
+                    VirtualRegInfo vregInfo = getVregInfo((VirtualReg) definedReg);
+                    if(inst instanceof IRMove){
+                        RegValue rhs = ((IRMove) inst).getRhs();
+                        if(rhs instanceof VirtualReg){
+                            vregInfo.suggestSameRegs.add((VirtualReg) rhs);
+                            getVregInfo((VirtualReg) rhs).suggestSameRegs.add((VirtualReg) definedReg);
                         }
-                        else{
-                            for(VirtualReg vreg : inst.liveOut){
-                                if(vreg != definedReg)
-                                    addEdge(vreg , (VirtualReg) definedReg);
-                            }
+                        for(VirtualReg vreg : inst.liveOut){
+                            if(vreg != rhs && vreg != definedReg)
+                                addEdge(vreg , (VirtualReg) definedReg);
+                        }
+                    }
+                    else{
+                        for(VirtualReg vreg : inst.liveOut){
+                            if(vreg != definedReg)
+                                addEdge(vreg , (VirtualReg) definedReg);
                         }
                     }
                 }
