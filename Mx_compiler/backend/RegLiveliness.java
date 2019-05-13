@@ -124,8 +124,7 @@ public class RegLiveliness {
                             isFieldOutside = true;
                         continue;
                     }
-                    if(inst instanceof IRReturn){
-                        //TODO
+                    if(inst instanceof IRReturn || inst instanceof IRPop || inst instanceof IRPush){
                         isFieldOutside = true;
                         continue;
                     }
@@ -185,8 +184,11 @@ public class RegLiveliness {
         while(eliminationChanged){
             eliminationChanged = false;
             for(IRFunc irFunc : irRoot.getFuncs().values()){
+                if(irFunc.getName().equals("qsrt")){
+                    int a = 0;
+                }
                 if(irFunc.isBuiltIn()) continue;
-                tryEliminate(irFunc);
+                //tryEliminate(irFunc);
                 removeBlankBlock(irFunc);
                 livelinessCheck(irFunc);
             }

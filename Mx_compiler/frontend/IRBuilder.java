@@ -153,7 +153,7 @@ public class IRBuilder extends BasicScopeScanner {
     @Override
     public void visit(ClassBuildNode node){
         String funcName = node.getName();
-        funcName = String.format("_member_%s_%s" , curClassName , funcName);
+        funcName = String.format("__member_%s_%s" , curClassName , funcName);
         curFunc = irRoot.getIRFunc(funcName);
         curBlock = curFunc.genStartBlock();
         Scope lastScope = curScope;
@@ -174,7 +174,7 @@ public class IRBuilder extends BasicScopeScanner {
     public void visit(FuncDeclNode node) {
         String funcName = node.getName();
         if (curClassName != null) {
-            funcName = String.format("_member_%s_%s", curClassName, funcName);
+            funcName = String.format("__member_%s_%s", curClassName, funcName);
         }
         curFunc = irRoot.getIRFunc(funcName);
         curBlock = curFunc.genStartBlock();
@@ -314,6 +314,7 @@ public class IRBuilder extends BasicScopeScanner {
         BasicBlock tmpNextBlock = curNextBlock;
         curLoopBlock = condBlock;
         curNextBlock = nextBlock;
+        curBlock.addJumpInst(new IRJump(curBlock , condBlock));
         curBlock = condBlock;
         node.getCond().accept(this);
         node.getCond().setTrue(bodyBlock);
@@ -331,10 +332,23 @@ public class IRBuilder extends BasicScopeScanner {
 
     @Override
     public void visit(ForStmtNode node) {
-        BasicBlock condBlock = new BasicBlock("_for_cond", curFunc);
-        BasicBlock stepBlock = new BasicBlock("_for_step", curFunc);
+        BasicBlock condBlock;
+        BasicBlock stepBlock;
         BasicBlock bodyBlock = new BasicBlock("_for_body", curFunc);
         BasicBlock nextBlock = new BasicBlock("_for_next", curFunc);
+        if(node.getCond() != null)
+            condBlock = new BasicBlock("_for_cond" , curFunc);
+        else
+            condBlock = bodyBlock;
+        if(node.getStep() != null)
+            stepBlock = new BasicBlock("_for_step" , curFunc);
+        else
+            stepBlock = condBlock;
+        condBlock.forNode = node;
+        stepBlock.forNode = node;
+        bodyBlock.forNode = node;
+        nextBlock.forNode = node;
+        irRoot.forRecMap.put(node , new IRRoot.ForRecord(condBlock , stepBlock , bodyBlock , nextBlock));
         BasicBlock tmpLoopBlock = curLoopBlock, tmpNextBlock = curNextBlock;
         curLoopBlock = condBlock;
         curNextBlock = nextBlock;
@@ -351,15 +365,22 @@ public class IRBuilder extends BasicScopeScanner {
                 curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
             }
         }
-        curBlock = bodyBlock;
-        node.getBody().accept(this);
-        if (!curBlock.isJump()) {
-            curBlock.addJumpInst(new IRJump(curBlock, stepBlock));
-        }
         if (node.getStep() != null) {
             curBlock = stepBlock;
             node.getStep().accept(this);
             curBlock.addJumpInst(new IRJump(curBlock, condBlock));
+        }
+        curBlock = bodyBlock;
+        if(node.getBody() == null){
+            if(!curBlock.isJump()){
+                curBlock.addJumpInst(new IRJump(curBlock , condBlock));
+            }
+        }
+        else{
+            node.getBody().accept(this);
+            if(!curBlock.isJump()){
+                curBlock.addJumpInst(new IRJump(curBlock , stepBlock));
+            }
         }
         curLoopBlock = tmpLoopBlock;
         curNextBlock = tmpNextBlock;
@@ -557,7 +578,7 @@ public class IRBuilder extends BasicScopeScanner {
             } else {
                 className = Scope.STRING_CLASS_NAME;
             }
-            funcName = String.format("_member_%s_%s", className, funcName);
+            funcName = String.format("__member_%s_%s", className, funcName);
             args.add(thisExpr.getRegValue());
         }
         if (funcEntity.isBuiltIn()) {
@@ -1045,7 +1066,7 @@ public class IRBuilder extends BasicScopeScanner {
             String className = ((ClassType) type).getName();
             ClassEntity classEntity = (ClassEntity) curScope.get(Scope.classKey(className));
             curBlock.addInst(new IRHeapAlloc(curBlock , vreg , new Imm(classEntity.getMemSize())));
-            String funcName = String.format("_member_%s_%s" , className , className);
+            String funcName = String.format("__member_%s_%s" , className , className);
             IRFunc irFunc = irRoot.getIRFunc(funcName);
             if(irFunc != null){
                 List<RegValue> args = new ArrayList<>();

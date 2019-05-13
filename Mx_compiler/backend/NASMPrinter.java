@@ -33,7 +33,7 @@ public class NASMPrinter implements IRVisitor {
     private String dataId(StaticData data){
         String id = idMap.get(data);
         if(id == null){
-            id = "_static_data_" + newId(data.getName());
+            id = "__static_data_" + newId(data.getName());
             idMap.put(data , id);
         }
         return id;
