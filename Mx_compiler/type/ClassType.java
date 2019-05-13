@@ -6,6 +6,7 @@ public class ClassType extends Type {
     public ClassType(String name){
         type = TypeList.CLASS;
         this.name = name;
+        varSize = 8;
     }
 
     @Override
