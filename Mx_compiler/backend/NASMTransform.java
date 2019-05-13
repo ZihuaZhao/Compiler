@@ -161,7 +161,7 @@ public class NASMTransform {
                         }
                         if (calleeInfo.numExtraArgs > 0 || extraPush) {
                             int num = extraPush ? calleeInfo.numExtraArgs + 1 : calleeInfo.numExtraArgs;
-                            inst.appendInst(new IRBinaryOperation(inst.getBlock() , rsp , IRBinaryOperation.IRBinaryOp.ADD , rsp , new Imm(numPushArg * 8)));
+                            inst.appendInst(new IRBinaryOperation(inst.getBlock() , rsp , IRBinaryOperation.IRBinaryOp.ADD , rsp , new Imm(num * 8)));
                         }
                     }
                     else if (inst instanceof IRHeapAlloc) {
