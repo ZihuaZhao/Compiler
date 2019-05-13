@@ -6,6 +6,7 @@ public class ArrayType extends Type{
     public ArrayType(Type baseType){
         type = TypeList.ARRAY;
         this.baseType = baseType;
+        varSize = 8;
     }
 
     @Override
