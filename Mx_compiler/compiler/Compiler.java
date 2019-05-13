@@ -61,6 +61,7 @@ public class Compiler {
         IRRoot irRoot = irBuilder.getIrRoot();
         new TwoRegTransform(irRoot).run();
         //new IRPrinter(irOut).visit(irRoot);
+        new StaticDataProcessor(irRoot).run();
         new RegPreprocessor(irRoot).run();
         new RegLiveliness(irRoot).run();
         new RegAllocator(irRoot).run();

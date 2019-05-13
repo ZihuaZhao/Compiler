@@ -419,8 +419,22 @@ public class IRBuilder extends BasicScopeScanner {
         }
     }
 
+    private boolean checkIdThisMember(IdExprNode node){
+        if(!node.isChecked()){
+            if(curClassName != null){
+                VarEntity varEntity = (VarEntity) curScope.get(Scope.varKey(node.getName()));
+                node.setMemOp(varEntity.getIrReg() == null);
+            }
+            else{
+                node.setMemOp(false);
+            }
+            node.setChecked(true);
+        }
+        return node.isMemOp();
+    }
+
     private boolean isMemExpr(ExprNode node){
-        if(node instanceof SubscriptExprNode || node instanceof MemberCallExprNode){
+        if(node instanceof SubscriptExprNode || node instanceof MemberCallExprNode || (node instanceof IdExprNode && checkIdThisMember((IdExprNode) node))){
             return true;
         }
         return false;

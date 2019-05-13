@@ -48,6 +48,14 @@ public class IRStore extends IRInstruction{
         this.offset = offset;
     }
 
+    public boolean isStatic(){
+        return isStatic;
+    }
+
+    public void setStatic(boolean isStatic){
+        this.isStatic = isStatic;
+    }
+
     @Override
     public void reloadUsedReg(){
         usedRegs.clear();

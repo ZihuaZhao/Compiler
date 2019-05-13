@@ -8,10 +8,19 @@ public class IdExprNode extends ExprNode{
     private String name;
     private VarEntity varEntity = null;
     private boolean isMemOp = false;
+    private boolean isChecked = false;
 
     public IdExprNode(String name , Location loc){
         this.name = name;
         this.location = loc;
+    }
+
+    public boolean isChecked(){
+        return isChecked;
+    }
+
+    public void setChecked(boolean isChecked){
+        this.isChecked = isChecked;
     }
 
     public String getName(){
@@ -32,6 +41,10 @@ public class IdExprNode extends ExprNode{
 
     public void setMemOp(boolean isMemOp){
         this.isMemOp = isMemOp;
+    }
+
+    public boolean isMemOp(){
+        return isMemOp;
     }
 
     @Override
