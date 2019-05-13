@@ -407,7 +407,7 @@ public class IRBuilder extends BasicScopeScanner {
 
     @Override
     public void visit(SuffixExprNode node) {
-        boolean isMemExpr = isMemExpr(node.getExpr());
+        boolean needMemOp = isMemExpr(node);
         boolean tmpAddr = isAddr;
         isAddr = false;
         node.getExpr().accept(this);
@@ -419,7 +419,15 @@ public class IRBuilder extends BasicScopeScanner {
             op = IRBinaryOperation.IRBinaryOp.ADD;
         }
         else op = IRBinaryOperation.IRBinaryOp.SUB;
-        curBlock.addInst(new IRBinaryOperation(curBlock , (IRReg)node.getExpr().getRegValue() , op , node.getExpr().getRegValue() , new Imm(1)));
+        if(needMemOp){
+            isAddr = true;
+            node.getExpr().accept(this);
+            VirtualReg reg = new VirtualReg(null);
+            curBlock.addInst(new IRBinaryOperation(curBlock, reg, op, node.getExpr().getRegValue(), new Imm(1)));
+            curBlock.addInst(new IRStore(curBlock, reg, 8, node.getExpr().getAddrValue(), node.getExpr().getAddrOffset()));
+        }
+        else
+            curBlock.addInst(new IRBinaryOperation(curBlock , (IRReg)node.getExpr().getRegValue() , op , node.getExpr().getRegValue() , new Imm(1)));
         isAddr = tmpAddr;
     }
 
@@ -593,17 +601,25 @@ public class IRBuilder extends BasicScopeScanner {
     }
 
     @Override
-    public void visit(MemberCallExprNode node){
+    public void visit(MemberCallExprNode node) {
+        boolean tmpAddr = isAddr;
+        isAddr = false;
         node.getExpr().accept(this);
+        isAddr = tmpAddr;
         RegValue addr = node.getExpr().getRegValue();
-        String name = ((ClassType)node.getExpr().getType()).getName();
-        ClassEntity classEntity = (ClassEntity) curScope.getCheck(name , Scope.classKey(name));
+        String name = ((ClassType) node.getExpr().getType()).getName();
+        ClassEntity classEntity = (ClassEntity) curScope.getCheck(name, Scope.classKey(name));
         VarEntity varEntity = (VarEntity) classEntity.getScope().getSelf(Scope.varKey(node.getId()));
-        VirtualReg vreg = new VirtualReg(null);
-        node.setRegValue(vreg);
-        curBlock.addInst(new IRLoad(curBlock , vreg , varEntity.getType().getVarSize() , addr , varEntity.getAddrOffset()));
-        if(node.getTrue() != null)
-            curBlock.addJumpInst(new IRBranch(curBlock , node.getRegValue() , node.getTrue() , node.getFalse()));
+        if (isAddr) {
+            node.setAddrValue(addr);
+            node.setAddrOffset(varEntity.getAddrOffset());
+        } else {
+            VirtualReg vreg = new VirtualReg(null);
+            node.setRegValue(vreg);
+            curBlock.addInst(new IRLoad(curBlock, vreg, varEntity.getType().getVarSize(), addr, varEntity.getAddrOffset()));
+            if (node.getTrue() != null)
+                curBlock.addJumpInst(new IRBranch(curBlock, node.getRegValue(), node.getTrue(), node.getFalse()));
+        }
     }
 
     @Override
@@ -622,7 +638,16 @@ public class IRBuilder extends BasicScopeScanner {
                     op = IRBinaryOperation.IRBinaryOp.ADD;
                 }
                 else op = IRBinaryOperation.IRBinaryOp.SUB;
-                curBlock.addInst(new IRBinaryOperation(curBlock , (IRReg)node.getExpr().getRegValue() , op , node.getExpr().getRegValue() , new Imm(1)));
+                if(isMemExpr){
+                    isAddr = true;
+                    node.getExpr().accept(this);
+                    VirtualReg reg = new VirtualReg(null);
+                    curBlock.addInst(new IRBinaryOperation(curBlock, reg, op, node.getExpr().getRegValue(), new Imm(1)));
+                    curBlock.addInst(new IRStore(curBlock, reg, 8, node.getExpr().getAddrValue(), node.getExpr().getAddrOffset()));
+                    node.getExpr().setRegValue(reg);
+                }
+                else
+                    curBlock.addInst(new IRBinaryOperation(curBlock , (IRReg)node.getExpr().getRegValue() , op , node.getExpr().getRegValue() , new Imm(1)));
                 isAddr = tmpAddr;
                 break;
             case POS:
@@ -922,8 +947,8 @@ public class IRBuilder extends BasicScopeScanner {
                 if(node.getTrue() != null){
                     curBlock.addJumpInst(new IRBranch(curBlock , node.getRegValue() , node.getTrue() , node.getFalse()));
                 }
-                node.setMemOp(true);
             }
+            node.setMemOp(true);
         }
         else{
             node.setRegValue(varEntity.getIrReg());

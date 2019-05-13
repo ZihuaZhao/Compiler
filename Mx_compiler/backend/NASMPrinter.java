@@ -365,7 +365,7 @@ public class NASMPrinter implements IRVisitor {
         else if(node.getOffset() > 0){
             out.print("+" + node.getOffset());
         }
-        out.print("]");
+        out.print("],");
         node.getValue().accept(this);
         out.println();
     }
