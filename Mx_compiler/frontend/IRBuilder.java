@@ -711,6 +711,58 @@ public class IRBuilder extends BasicScopeScanner {
         }
     }
 
+    private void processStringBinaryOp(BinaryExprNode node) {
+        if (!(node.getLeft().getType() instanceof StringType)) {
+            throw new Error("invalid string binary operation");
+        }
+        node.getLeft().accept(this);
+        node.getRight().accept(this);
+        IRFunc calleeFunc;
+        ExprNode tmp;
+        switch (node.getOp()) {
+            case ADD:
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_CONCAT_FUNC_NAME);
+                break;
+            case EQ:
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_EQUAL_FUNC_NAME);
+                break;
+            case NEQ:
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_INEQUAL_FUNC_NAME);
+                break;
+            case LT:
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_LESS_FUNC_NAME);
+                break;
+            case LTE:
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_LESS_EQUAL_FUNC_NAME);
+                break;
+            case GT:
+                tmp = node.getLeft();
+                node.setLeft(node.getRight());
+                node.setRight(tmp);
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_LESS_FUNC_NAME);
+                break;
+            case GTE:
+                tmp = node.getLeft();
+                node.setLeft(node.getRight());
+                node.setRight(tmp);
+                calleeFunc = irRoot.getBuiltInFunc(IRRoot.BUILTIN_STRING_LESS_EQUAL_FUNC_NAME);
+                break;
+            default:
+                throw new Error("invalid string binary op");
+        }
+        List<RegValue> args = new ArrayList<>();
+        args.add(node.getLeft().getRegValue());
+        args.add(node.getRight().getRegValue());
+        VirtualReg vreg = new VirtualReg(null);
+        curBlock.addInst(new IRFunctionCall(curBlock, calleeFunc, args, vreg));
+
+        if (node.getTrue() != null) {
+            curBlock.addJumpInst(new IRBranch(curBlock, vreg, node.getTrue(), node.getFalse()));
+        } else {
+            node.setRegValue(vreg);
+        }
+    }
+
     @Override
     public void visit(BinaryExprNode node){
         switch(node.getOp()){
@@ -742,6 +794,10 @@ public class IRBuilder extends BasicScopeScanner {
             case BITWISE_AND:
             case BITWISE_OR:
             case BITWISE_XOR:
+                if(node.getLeft().getType() instanceof StringType){
+                    processStringBinaryOp(node);
+                    return;
+                }
                 node.getLeft().accept(this);
                 node.getRight().accept(this);
                 RegValue lhs = node.getLeft().getRegValue();
@@ -836,6 +892,10 @@ public class IRBuilder extends BasicScopeScanner {
             case NEQ:
             case GTE:
             case LTE:
+                if(node.getLeft().getType() instanceof StringType){
+                    processStringBinaryOp(node);
+                    return;
+                }
                 node.getLeft().accept(this);
                 node.getRight().accept(this);
                 RegValue lhss = node.getLeft().getRegValue();

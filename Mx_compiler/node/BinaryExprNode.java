@@ -27,8 +27,16 @@ public class BinaryExprNode extends ExprNode{
         return left;
     }
 
+    public void setLeft(ExprNode left){
+        this.left = left;
+    }
+
     public ExprNode getRight(){
         return right;
+    }
+
+    public void setRight(ExprNode right){
+        this.right = right;
     }
 
     @Override
