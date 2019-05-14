@@ -271,36 +271,38 @@ public class IRBuilder extends BasicScopeScanner {
 
     @Override
     public void visit(IfStmtNode node) {
-        BasicBlock thenBlock, elseBlock = null, nextBlock;
-        if (node.getElseStmt() != null) {
-            thenBlock = new BasicBlock("_if_then", curFunc);
-            elseBlock = new BasicBlock("_if_else", curFunc);
-            nextBlock = new BasicBlock("_if_next", curFunc);
+        BasicBlock thenBlock = new BasicBlock("if_then" , curFunc);
+        BasicBlock nextBlock = new BasicBlock("if_next" , curFunc);
+        BasicBlock elseBlock;
+        if(node.getElseStmt() != null){
+            elseBlock = new BasicBlock("if_else" , curFunc);
             node.getCond().setTrue(thenBlock);
             node.getCond().setFalse(elseBlock);
             node.getCond().accept(this);
-            if (node.getCond() instanceof BoolLitExprNode) {
-                curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
+            if(node.getCond() instanceof BoolLitExprNode){
+                curBlock.addJumpInst(new IRBranch(curBlock , node.getCond().getRegValue() , node.getCond().getTrue() , node.getCond().getFalse()));
             }
-        } else {
-            thenBlock = new BasicBlock("_if_then", curFunc);
-            nextBlock = new BasicBlock("_if_next", curFunc);
+        }
+        else{
+            elseBlock = null;
             node.getCond().setTrue(thenBlock);
             node.getCond().setFalse(nextBlock);
             node.getCond().accept(this);
-            if (node.getCond() instanceof BoolLitExprNode) {
-                curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
+            if(node.getCond() instanceof BoolLitExprNode){
+                curBlock.addJumpInst(new IRBranch(curBlock , node.getCond().getRegValue() , node.getCond().getTrue() , node.getCond().getFalse()));
             }
         }
         curBlock = thenBlock;
         node.getBody().accept(this);
-        if(!curBlock.isJump())
-            curBlock.addJumpInst(new IRJump(curBlock, nextBlock));
-        if (node.getElseStmt() != null) {
+        if(!curBlock.isJump()){
+            curBlock.addJumpInst(new IRJump(curBlock , nextBlock));
+        }
+        if(node.getElseStmt() != null){
             curBlock = elseBlock;
             node.getElseStmt().accept(this);
-            if(!curBlock.isJump())
-                curBlock.addJumpInst(new IRJump(curBlock, nextBlock));
+            if(!curBlock.isJump()){
+                curBlock.addJumpInst(new IRJump(curBlock , nextBlock));
+            }
         }
         curBlock = nextBlock;
     }
@@ -316,15 +318,16 @@ public class IRBuilder extends BasicScopeScanner {
         curNextBlock = nextBlock;
         curBlock.addJumpInst(new IRJump(curBlock , condBlock));
         curBlock = condBlock;
-        node.getCond().accept(this);
         node.getCond().setTrue(bodyBlock);
         node.getCond().setFalse(nextBlock);
+        node.getCond().accept(this);
         if (node.getCond() instanceof BoolLitExprNode) {
             curBlock.addJumpInst(new IRBranch(curBlock, node.getCond().getRegValue(), node.getCond().getTrue(), node.getCond().getFalse()));
         }
         curBlock = bodyBlock;
         node.getBody().accept(this);
-        curBlock.addJumpInst(new IRJump(curBlock, condBlock));
+        if(!curBlock.isJump())
+            curBlock.addJumpInst(new IRJump(curBlock, condBlock));
         curLoopBlock = tmpLoopBlock;
         curNextBlock = tmpNextBlock;
         curBlock = nextBlock;
@@ -721,8 +724,8 @@ public class IRBuilder extends BasicScopeScanner {
                 node.getRight().accept(this);
                 break;
             case LOG_OR:
-                node.getLeft().setTrue(new BasicBlock("_or_lhs_true" , curFunc));
-                node.getLeft().setFalse(node.getFalse());
+                node.getLeft().setTrue(node.getTrue());
+                node.getLeft().setFalse(new BasicBlock("or_lhs_false" , curFunc));
                 node.getLeft().accept(this);
                 curBlock = node.getLeft().getFalse();
                 node.getRight().setTrue(node.getTrue());
