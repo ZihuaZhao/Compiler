@@ -822,6 +822,7 @@ public class IRBuilder extends BasicScopeScanner {
                             node.setRegValue(new Imm(lhsImm / rhsImm));
                             return;
                         }
+                        irRoot.setHasDivShiftInst(true);
                         break;
                     case ADD:
                         op = IRBinaryOperation.IRBinaryOp.ADD;
@@ -843,6 +844,7 @@ public class IRBuilder extends BasicScopeScanner {
                             node.setRegValue(new Imm(lhsImm % rhsImm));
                             return;
                         }
+                        irRoot.setHasDivShiftInst(true);
                         break;
                     case LSFT:
                         op = IRBinaryOperation.IRBinaryOp.LSFT;
@@ -850,6 +852,7 @@ public class IRBuilder extends BasicScopeScanner {
                             node.setRegValue(new Imm(lhsImm << rhsImm));
                             return;
                         }
+                        irRoot.setHasDivShiftInst(true);
                         break;
                     case RSFT:
                         op = IRBinaryOperation.IRBinaryOp.RSFT;
@@ -857,6 +860,7 @@ public class IRBuilder extends BasicScopeScanner {
                             node.setRegValue(new Imm(lhsImm >> rhsImm));
                             return;
                         }
+                        irRoot.setHasDivShiftInst(true);
                         break;
                     case BITWISE_AND:
                         op = IRBinaryOperation.IRBinaryOp.BITWISE_AND;
