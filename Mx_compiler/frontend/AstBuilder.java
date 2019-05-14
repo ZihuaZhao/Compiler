@@ -448,7 +448,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         StringBuilder sb = new StringBuilder();
         for(int i = 0 ; i < str.length() ; ++i){
             if(i + 1 < str.length() && str.charAt(i) == '\\'){
-                switch(str.charAt(i + i)){
+                switch(str.charAt(i + 1)){
                     case '\\':
                         sb.append('\\');
                         break;
