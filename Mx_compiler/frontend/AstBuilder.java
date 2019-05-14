@@ -444,10 +444,36 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         return new BoolLitExprNode(value , Location.fromCtx(ctx));
     }
 
+    private String unescape(String str){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0 ; i < str.length() ; ++i){
+            if(i + 1 < str.length() && str.charAt(i) == '\\'){
+                switch(str.charAt(i + i)){
+                    case '\\':
+                        sb.append('\\');
+                        break;
+                    case 'n' :
+                        sb.append('\n');
+                        break;
+                    case '\"' :
+                        sb.append('\"');
+                        break;
+                    default:
+                        throw new Error("invalid escape string");
+                }
+                ++i;
+            }
+            else{
+                sb.append(str.charAt(i));
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     public Node visitStringLit(MXParser.StringLitContext ctx){
         String value = ctx.StringLiteral().getText().substring(1 , ctx.StringLiteral().getText().length() - 1);
-        return new StringLitExprNode(value , Location.fromCtx(ctx));
+        return new StringLitExprNode(unescape(value) , Location.fromCtx(ctx));
     }
 
     @Override
