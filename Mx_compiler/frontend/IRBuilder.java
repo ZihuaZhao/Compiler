@@ -353,7 +353,7 @@ public class IRBuilder extends BasicScopeScanner {
         nextBlock.forNode = node;
         irRoot.forRecMap.put(node , new IRRoot.ForRecord(condBlock , stepBlock , bodyBlock , nextBlock));
         BasicBlock tmpLoopBlock = curLoopBlock, tmpNextBlock = curNextBlock;
-        curLoopBlock = condBlock;
+        curLoopBlock = stepBlock;
         curNextBlock = nextBlock;
         if (node.getInit() != null) {
             node.getInit().accept(this);

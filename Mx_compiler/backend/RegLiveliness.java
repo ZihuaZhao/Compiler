@@ -180,18 +180,16 @@ public class RegLiveliness {
         for(IRFunc irFunc : irRoot.getFuncs().values()){
             livelinessCheck(irFunc);
         }
-        eliminationChanged = true;
+        /*eliminationChanged = true;
         while(eliminationChanged){
             eliminationChanged = false;
             for(IRFunc irFunc : irRoot.getFuncs().values()){
-                if(irFunc.getName().equals("qsrt")){
-                    int a = 0;
-                }
                 if(irFunc.isBuiltIn()) continue;
                 //tryEliminate(irFunc);
-                removeBlankBlock(irFunc);
+                //removeBlankBlock(irFunc);
                 livelinessCheck(irFunc);
             }
         }
+        */
     }
 }
