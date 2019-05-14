@@ -699,10 +699,12 @@ public class IRBuilder extends BasicScopeScanner {
                 curBlock.addInst(new IRUnaryOperation(curBlock , vreg , IRUnaryOperation.IRUnaryOp.BITWISE_NOT , node.getExpr().getRegValue()));
                 break;
             case LOG_NOT:
-                node.setRegValue(vreg);
+                node.getExpr().setTrue(node.getFalse());
+                node.getExpr().setFalse(node.getTrue());
                 node.getExpr().accept(this);
-                curBlock.addInst(new IRUnaryOperation(curBlock , vreg , IRUnaryOperation.IRUnaryOp.LOG_NOT , node.getExpr().getRegValue()));
                 break;
+            default:
+                throw new Error("invalid prefix op");
         }
     }
 
