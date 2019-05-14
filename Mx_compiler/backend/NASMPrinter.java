@@ -155,6 +155,7 @@ public class NASMPrinter implements IRVisitor {
         out.print(", ");
         node.getRhs().accept(this);
         out.print("\n\t\t" + op + "\t\t");
+        node.getDest().accept(this);
         out.println();
     }
 
