@@ -714,7 +714,8 @@ public class IRBuilder extends BasicScopeScanner {
             case LOG_AND:
                 node.getLeft().setTrue(new BasicBlock("_and_lhs_true" , curFunc));
                 node.getLeft().setFalse(node.getFalse());
-                node.accept(this);
+                node.getLeft().accept(this);
+                curBlock = node.getLeft().getTrue();
                 node.getRight().setTrue(node.getTrue());
                 node.getRight().setFalse(node.getFalse());
                 node.getRight().accept(this);
@@ -722,7 +723,8 @@ public class IRBuilder extends BasicScopeScanner {
             case LOG_OR:
                 node.getLeft().setTrue(new BasicBlock("_or_lhs_true" , curFunc));
                 node.getLeft().setFalse(node.getFalse());
-                node.accept(this);
+                node.getLeft().accept(this);
+                curBlock = node.getLeft().getFalse();
                 node.getRight().setTrue(node.getTrue());
                 node.getRight().setFalse(node.getFalse());
                 node.getRight().accept(this);
