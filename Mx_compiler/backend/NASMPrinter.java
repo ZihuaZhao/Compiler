@@ -121,7 +121,7 @@ public class NASMPrinter implements IRVisitor {
         out.print("\t\tcmp\t\t");
         node.getCond().accept(this);
         out.println(", 1");
-        out.printf("\t\tjmp\t\t%s\n" , blockId(node.getThenBlock()));
+        out.printf("\t\tje\t\t%s\n" , blockId(node.getThenBlock()));
         if(node.getElseBlock().getPostNum() + 1 == node.getBlock().getPostNum()) return;
         out.printf("\t\tjmp\t\t%s\n" , blockId(node.getElseBlock()));
     }
@@ -254,7 +254,7 @@ public class NASMPrinter implements IRVisitor {
             node.getLhs().accept(this);
             out.println(", -1");
         }
-        else{
+        if(node.getRhs() instanceof PhysicalReg){
             out.print("\t\tand\t\t");
             node.getRhs().accept(this);
             out.println(", -1");

@@ -354,8 +354,8 @@ public class IRBuilder extends BasicScopeScanner {
         curNextBlock = nextBlock;
         if (node.getInit() != null) {
             node.getInit().accept(this);
-            curBlock.addJumpInst(new IRJump(curBlock, condBlock));
         }
+        curBlock.addJumpInst(new IRJump(curBlock, condBlock));
         if (node.getCond() != null) {
             curBlock = condBlock;
             node.getCond().setTrue(bodyBlock);
@@ -373,7 +373,7 @@ public class IRBuilder extends BasicScopeScanner {
         curBlock = bodyBlock;
         if(node.getBody() == null){
             if(!curBlock.isJump()){
-                curBlock.addJumpInst(new IRJump(curBlock , condBlock));
+                curBlock.addJumpInst(new IRJump(curBlock , stepBlock));
             }
         }
         else{
@@ -935,8 +935,6 @@ public class IRBuilder extends BasicScopeScanner {
                     node.setRegValue(vvreg);
                 }
                 break;
-            default:
-                throw new Error("invalid operation");
         }
     }
 
