@@ -200,6 +200,7 @@ public class FuncInlineProcessor {
             irFunc.updateCalleeSet();
         }
         irRoot.updataCalleeSet();
+        /*
         reversePostOrder = new ArrayList<>();
         changed = true;
         for(int i = 0 ; changed && i < MAX_INLINE_DEPTH ; ++i){
@@ -244,5 +245,6 @@ public class FuncInlineProcessor {
             irFunc.updateCalleeSet();
         }
         irRoot.updataCalleeSet();
+        */
     }
 }

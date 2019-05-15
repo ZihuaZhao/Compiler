@@ -68,6 +68,7 @@ public class Compiler {
         new RegLiveliness(irRoot).run();
         new RegAllocator(irRoot).run();
         new NASMTransform(irRoot).run();
+        new ExtraInstOptim(irRoot).run();
         new NASMPrinter(nasmOut).visit(irRoot);
     }
 }
