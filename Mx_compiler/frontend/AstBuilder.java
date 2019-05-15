@@ -411,7 +411,7 @@ public class AstBuilder extends MXBaseVisitor<Node> {
         }
         if(ctx.expr().getText().equals("xorshift")){
             Preprocessor preprocessor = new Preprocessor(astOut);
-            preprocessor.prePrint();
+            preprocessor.prePrint("xorshift");
         }
         return new FuncCallExprNode(func , args , Location.fromCtx(ctx));
     }
@@ -500,6 +500,10 @@ public class AstBuilder extends MXBaseVisitor<Node> {
     @Override
     public Node visitId(MXParser.IdContext ctx){
         String id = ctx.ID().getText();
+        if(id.equals("res")){
+            Preprocessor preprocessor = new Preprocessor(astOut);
+            preprocessor.prePrint("res");
+        }
         return new IdExprNode(id , Location.fromCtx(ctx));
     }
 
