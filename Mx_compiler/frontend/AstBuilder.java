@@ -409,10 +409,6 @@ public class AstBuilder extends MXBaseVisitor<Node> {
                 args.add((ExprNode)visit(expr));
             }
         }
-        if(ctx.expr().getText().equals("xorshift")){
-            Preprocessor preprocessor = new Preprocessor(astOut);
-            preprocessor.prePrint("xorshift");
-        }
         return new FuncCallExprNode(func , args , Location.fromCtx(ctx));
     }
 
