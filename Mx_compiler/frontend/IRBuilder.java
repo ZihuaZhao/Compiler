@@ -167,7 +167,10 @@ public class IRBuilder extends BasicScopeScanner {
         if(!curBlock.isJump()){
             curBlock.addJumpInst(new IRReturn(curBlock , null));
         }
+        curFunc.setEndBlock(curBlock);
+        curFunc = null;
     }
+
 
 
     @Override
