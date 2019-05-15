@@ -24,4 +24,9 @@ public class StackSlot extends IRReg{
 
     @Override
     public void accept(IRVisitor visitor){}
+
+    @Override
+    public RegValue copy(){
+        return null;
+    }
 }

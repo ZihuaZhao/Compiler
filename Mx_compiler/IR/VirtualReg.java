@@ -25,4 +25,9 @@ public class VirtualReg extends IRReg{
     public void accept(IRVisitor visitor){
         visitor.visit(this);
     }
+
+    @Override
+    public VirtualReg copy(){
+        return new VirtualReg(name);
+    }
 }

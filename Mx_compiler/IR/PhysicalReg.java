@@ -8,6 +8,11 @@ public abstract class PhysicalReg extends IRReg{
         visitor.visit(this);
     }
 
+    @Override
+    public PhysicalReg copy(){
+        return null;
+    }
+
     public abstract String getName();
     public abstract boolean isGeneral();
     public abstract boolean isCallerSave();

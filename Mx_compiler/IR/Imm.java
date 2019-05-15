@@ -20,4 +20,9 @@ public class Imm extends RegValue{
     public void accept(IRVisitor visitor){
         visitor.visit(this);
     }
+
+    @Override
+    public Imm copy(){
+        return new Imm(value);
+    }
 }

@@ -17,6 +17,8 @@ public class IRFunc {
     private boolean isBuiltIn = false;
     private boolean isMemFunc = false;
 
+    public IRFunc(){}
+
     public IRFunc(FuncEntity funcEntity){
         this.funcEntity = funcEntity;
         name = funcEntity.getName();
@@ -44,6 +46,10 @@ public class IRFunc {
         return virtualRegList;
     }
 
+    public void setVirtualRegList(List<VirtualReg> virtualRegList){
+        this.virtualRegList = virtualRegList;
+    }
+
     public List<IRReturn> getReturnList(){
         return returnList;
     }
@@ -59,6 +65,10 @@ public class IRFunc {
 
     public BasicBlock getStartBlock(){
         return startBlock;
+    }
+
+    public void setStartBlock(BasicBlock startBlock){
+        this.startBlock = startBlock;
     }
 
     public BasicBlock getEndBlock(){

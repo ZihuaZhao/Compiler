@@ -116,6 +116,10 @@ public class IRRoot {
         funcs.put(irFunc.getName() , irFunc);
     }
 
+    public void removeFunc(String funcName){
+        funcs.remove(funcName);
+    }
+
     public IRFunc getIRFunc(String funcName){
         return funcs.get(funcName);
     }

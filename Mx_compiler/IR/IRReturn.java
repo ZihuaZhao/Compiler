@@ -23,7 +23,8 @@ public class IRReturn extends IRJumpInst{
         usedRegValues.clear();
         if(regValue != null && regValue instanceof IRReg)
             usedRegs.add((IRReg) regValue);
-        usedRegValues.add(regValue);
+        if(regValue != null)
+            usedRegValues.add(regValue);
     }
 
     @Override
