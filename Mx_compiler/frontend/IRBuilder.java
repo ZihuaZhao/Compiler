@@ -446,7 +446,7 @@ public class IRBuilder extends BasicScopeScanner {
 
     @Override
     public void visit(SuffixExprNode node) {
-        boolean needMemOp = isMemExpr(node);
+        boolean needMemOp = isMemExpr(node.getExpr());
         boolean tmpAddr = isAddr;
         isAddr = false;
         node.getExpr().accept(this);
