@@ -20,7 +20,7 @@ public class IRFunc {
         this.funcEntity = funcEntity;
         name = funcEntity.getName();
         if(funcEntity.isMember()){
-            name = String.format("_member_%s_%s" , funcEntity.getClassName() , funcEntity.getName());
+            name = String.format("__member_%s_%s" , funcEntity.getClassName() , funcEntity.getName());
         }
     }
 
