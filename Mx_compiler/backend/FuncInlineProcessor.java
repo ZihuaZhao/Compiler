@@ -38,6 +38,7 @@ public class FuncInlineProcessor {
         BasicBlock oldEndBlock = calleeFunc.getEndBlock();
         BasicBlock newEndBlock = new BasicBlock(oldEndBlock.getName() , callerFunc);
         renameMap.put(oldEndBlock , newEndBlock);
+        renameMap.put(calleeFunc.getStartBlock() , functionCall.getBlock());
         if(callerFunc.getEndBlock() == functionCall.getBlock())
             callerFunc.setEndBlock(newEndBlock);
         Map<Object , Object> callRenameMap = Collections.singletonMap(functionCall.getBlock() , newEndBlock);
@@ -57,6 +58,11 @@ public class FuncInlineProcessor {
             renameMap.put(oldArg , newArg);
         }
         functionCall.remove();
+        for(BasicBlock block : reversePostOrder){
+            if(!renameMap.containsKey(block)){
+                renameMap.put(block , new BasicBlock(block.getName() , callerFunc));
+            }
+        }
         for(BasicBlock oldBlock : reversePostOrder){
             BasicBlock newBlock = (BasicBlock) renameMap.get(oldBlock);
             if(oldBlock.forNode != null){
