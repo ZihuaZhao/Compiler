@@ -172,7 +172,6 @@ public class IRBuilder extends BasicScopeScanner {
     }
 
 
-
     @Override
     public void visit(FuncDeclNode node) {
         String funcName = node.getName();

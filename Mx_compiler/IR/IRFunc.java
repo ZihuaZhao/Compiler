@@ -15,6 +15,7 @@ public class IRFunc {
     private boolean recursiveCall = false;
     private String builtInCallLabel;
     private boolean isBuiltIn = false;
+    private boolean isMemFunc = false;
 
     public IRFunc(FuncEntity funcEntity){
         this.funcEntity = funcEntity;
@@ -66,6 +67,14 @@ public class IRFunc {
 
     public void setEndBlock(BasicBlock endBlock){
         this.endBlock = endBlock;
+    }
+
+    public void setMemFunc(boolean isMemFunc){
+        this.isMemFunc = isMemFunc;
+    }
+
+    public boolean isMemFunc() {
+        return isMemFunc;
     }
 
     public Set<IRFunc> calleeSet = new HashSet<>();

@@ -22,6 +22,7 @@ public class Compiler {
     private ProgramNode ast;
     private PrintStream irOut;
     private PrintStream nasmOut;
+    public boolean flag = false;
 
 
     public Compiler(InputStream inS , PrintStream outS){
@@ -43,7 +44,7 @@ public class Compiler {
         parser.removeErrorListeners();
         parser.addErrorListener(new SyntaxErrorListener());
         ParseTree tree = parser.program();
-        AstBuilder astbuilder = new AstBuilder();
+        AstBuilder astbuilder = new AstBuilder(nasmOut);
         ast = (ProgramNode) astbuilder.visit(tree);
     }
 

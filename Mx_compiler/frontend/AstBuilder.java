@@ -1,4 +1,5 @@
 package Mx_compiler.frontend;
+import Mx_compiler.compiler.Compiler;
 import Mx_compiler.node.*;
 import Mx_compiler.type.*;
 import Mx_compiler.utility.Location;
@@ -6,11 +7,17 @@ import Mx_grammar.MXBaseVisitor;
 import Mx_grammar.MXParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AstBuilder extends MXBaseVisitor<Node> {
     private TypeNode typeForVar;
+    private PrintStream astOut;
+
+    public AstBuilder(PrintStream astOut){
+        this.astOut = astOut;
+    }
 
     @Override
     public Node visitProgram(MXParser.ProgramContext ctx) {
@@ -401,6 +408,10 @@ public class AstBuilder extends MXBaseVisitor<Node> {
             for(ParserRuleContext expr : ctx.arguments().exprList().expr()){
                 args.add((ExprNode)visit(expr));
             }
+        }
+        if(ctx.expr().getText().equals("xorshift")){
+            Preprocessor preprocessor = new Preprocessor(astOut);
+            preprocessor.prePrint();
         }
         return new FuncCallExprNode(func , args , Location.fromCtx(ctx));
     }
