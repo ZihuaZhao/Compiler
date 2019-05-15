@@ -194,7 +194,7 @@ public class NASMPrinter implements IRVisitor {
             node.getLhs().accept(this);
             out.println(", cl");
             out.println("\t\tmov\t\trcx, rbx");
-            out.print("\t\tans\t\t");
+            out.print("\t\tand\t\t");
             node.getLhs().accept(this);
             out.println(", -1");
         }
