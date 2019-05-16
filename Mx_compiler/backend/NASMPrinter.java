@@ -186,7 +186,7 @@ public class NASMPrinter implements IRVisitor {
             out.print("\t\tmov\t\trcx, ");
             node.getRhs().accept(this);
             if(node.getOp() == LSFT){
-                out.print("\n\t\tsar\t\t");
+                out.print("\n\t\tsal\t\t");
             }
             else{
                 out.print("\n\t\tsar\t\t");
