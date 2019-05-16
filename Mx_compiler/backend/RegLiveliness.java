@@ -74,66 +74,66 @@ public class RegLiveliness {
         }
     }
 
-    void tryEliminate(IRFunc irFunc){
-        List<BasicBlock> reversePreOrder = irFunc.getReversePreOrder();
-        for(BasicBlock block : reversePreOrder){
-            for(IRInstruction inst = block.getLastInst() , prevInst ; inst != null ; inst = prevInst){
+    void tryEliminate(IRFunc func) {
+        List<BasicBlock> reversePreOrder = func.getReversePreOrder();
+        for (BasicBlock bb : reversePreOrder) {
+            for (IRInstruction inst = bb.getLastInst(), prevInst; inst != null; inst = prevInst) {
                 prevInst = inst.getPrevInst();
-                if(inst instanceof IRBinaryOperation || inst instanceof IRCmpOperation || inst instanceof IRLoad || inst instanceof IRMove || inst instanceof IRUnaryOperation || inst instanceof IRHeapAlloc){
+                if (inst instanceof IRBinaryOperation || inst instanceof IRCmpOperation ||
+                        inst instanceof IRLoad || inst instanceof IRMove || inst instanceof IRUnaryOperation ||
+                        inst instanceof IRHeapAlloc) {
                     IRReg dest = inst.getDefinedReg();
-                    if(dest == null || !inst.liveOut.contains(dest)){
+                    if (dest == null || !inst.liveOut.contains(dest)) {
                         eliminationChanged = true;
                         inst.remove();
                     }
                 }
             }
         }
-        for(IRRoot.ForRecord forRecord:irRoot.forRecMap.values()){
-            if(forRecord.processed) continue;
+
+        for (IRRoot.ForRecord forRec : irRoot.forRecMap.values()) {
+            if (forRec.processed) continue;
             boolean isFieldOutside = false;
-            if(forRecord.condBlock == null || forRecord.stepBlock == null || forRecord.bodyBlock == null || forRecord.nextBlock == null) continue;
-            List<BasicBlock> blockList = new ArrayList<>();
-            blockList.add(forRecord.condBlock);
-            blockList.add(forRecord.stepBlock);
-            blockList.add(forRecord.bodyBlock);
-            blockList.add(forRecord.nextBlock);
-            IRInstruction nextFirstInst = forRecord.nextBlock.getFirstInst();
-            for(int i = 0 ; i < 3 ; ++i){
-                for(IRInstruction inst = blockList.get(i).getFirstInst() ; inst != null ; inst = inst.getSuccInst()){
-                    if(inst instanceof IRFunctionCall){
+            if (forRec.condBlock == null || forRec.stepBlock == null || forRec.bodyBlock == null || forRec.nextBlock == null) continue;
+            List<BasicBlock> bbList = new ArrayList<>();
+            bbList.add(forRec.condBlock); bbList.add(forRec.stepBlock); bbList.add(forRec.bodyBlock); bbList.add(forRec.nextBlock);
+            IRInstruction afterFirstInst = forRec.nextBlock.getFirstInst();
+            for (int i = 0; i < 3; ++i) {
+                for (IRInstruction inst = bbList.get(i).getFirstInst(); inst != null; inst = inst.getSuccInst()) {
+                    if (inst instanceof IRFunctionCall) {
                         isFieldOutside = true;
                         continue;
                     }
-                    if(inst.getDefinedReg() != null){
-                        if(nextFirstInst.liveIn.contains(inst.getDefinedReg())){
+                    if (inst.getDefinedReg() != null) {
+                        if  (afterFirstInst.liveIn != null && afterFirstInst.liveIn.contains(inst.getDefinedReg())) {
                             isFieldOutside = true;
                         }
                         continue;
                     }
-                    if(inst instanceof IRStore){
+                    if (inst instanceof IRStore) {
                         isFieldOutside = true;
                         continue;
                     }
-                    if(inst instanceof IRJump){
-                        if(!blockList.contains(((IRJump) inst).getTarBlock()))
+                    if (inst instanceof IRJump) {
+                        if (!bbList.contains(((IRJump) inst).getTarBlock()))
                             isFieldOutside = true;
                         continue;
                     }
-                    if(inst instanceof IRBranch){
-                        if(!blockList.contains(((IRBranch) inst).getThenBlock()) || !blockList.contains(((IRBranch) inst).getElseBlock()))
+                    if (inst instanceof IRBranch) {
+                        if (!bbList.contains(((IRBranch) inst).getThenBlock()) || !bbList.contains(((IRBranch) inst).getElseBlock()))
                             isFieldOutside = true;
                         continue;
                     }
-                    if(inst instanceof IRReturn || inst instanceof IRPop || inst instanceof IRPush){
+                    if (inst instanceof IRReturn || inst instanceof IRPush || inst instanceof IRStore) {
                         isFieldOutside = true;
                         continue;
                     }
                 }
             }
-            if(!isFieldOutside){
-                forRecord.condBlock.reInit();
-                forRecord.condBlock.addJumpInst(new IRJump(forRecord.condBlock , forRecord.nextBlock));
-                forRecord.processed = true;
+            if (!isFieldOutside) {
+                forRec.condBlock.reInit();
+                forRec.condBlock.addJumpInst(new IRJump(forRec.condBlock, forRec.nextBlock));
+                forRec.processed = true;
             }
         }
     }
@@ -150,27 +150,26 @@ public class RegLiveliness {
         return ret;
     }
 
-    void removeBlankBlock(IRFunc irFunc){
+    void removeBlankBlock(IRFunc func) {
         jumpTarBlockMap.clear();
-        for(BasicBlock block : irFunc.getReversePostOrder()){
-            if(block.getFirstInst() == block.getLastInst()){
-                IRInstruction inst = block.getFirstInst();
-                if(inst instanceof IRJump){
-                    jumpTarBlockMap.put(block , ((IRJump) inst).getTarBlock());
+        for (BasicBlock bb : func.getReversePostOrder()) {
+            if (bb.getFirstInst() == bb.getLastInst()) {
+                IRInstruction inst = bb.getFirstInst();
+                if (inst instanceof IRJump) {
+                    jumpTarBlockMap.put(bb, ((IRJump) inst).getTarBlock());
                 }
             }
         }
-        for(BasicBlock block : irFunc.getReversePostOrder()){
-            if(block.getLastInst() instanceof IRJump){
-                IRJump jumpInst = (IRJump) block.getLastInst();
+        for (BasicBlock bb : func.getReversePostOrder()) {
+            if (bb.getLastInst() instanceof IRJump) {
+                IRJump jumpInst = (IRJump) bb.getLastInst();
                 jumpInst.setTarBlock(replaceJumpTar(jumpInst.getTarBlock()));
-            }
-            else if(block.getLastInst() instanceof IRBranch){
-                IRBranch branchInst = (IRBranch) block.getLastInst();
+            } else if (bb.getLastInst() instanceof IRBranch) {
+                IRBranch branchInst = (IRBranch) bb.getLastInst();
                 branchInst.setThenBlock(replaceJumpTar(branchInst.getThenBlock()));
                 branchInst.setElseBlock(replaceJumpTar(branchInst.getElseBlock()));
-                if(branchInst.getThenBlock() == branchInst.getElseBlock()){
-                    branchInst.replace(new IRJump(block , branchInst.getThenBlock()));
+                if (branchInst.getThenBlock() == branchInst.getElseBlock()) {
+                    branchInst.replace(new IRJump(bb, branchInst.getThenBlock()));
                 }
             }
         }
@@ -180,16 +179,15 @@ public class RegLiveliness {
         for(IRFunc irFunc : irRoot.getFuncs().values()){
             livelinessCheck(irFunc);
         }
-        /*eliminationChanged = true;
+        eliminationChanged = true;
         while(eliminationChanged){
             eliminationChanged = false;
             for(IRFunc irFunc : irRoot.getFuncs().values()){
                 if(irFunc.isBuiltIn()) continue;
-                //tryEliminate(irFunc);
-                //removeBlankBlock(irFunc);
+                tryEliminate(irFunc);
+                removeBlankBlock(irFunc);
                 livelinessCheck(irFunc);
             }
         }
-        */
     }
 }
